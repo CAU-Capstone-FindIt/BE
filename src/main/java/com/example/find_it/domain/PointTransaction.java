@@ -8,10 +8,9 @@ import jakarta.persistence.Id;
 import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Entity
-public class Leaderboard {
+public class PointTransaction {
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "leaderboard_id")
+    @Column(name = "point_transaction_id")
     private Long id;
-
 }
