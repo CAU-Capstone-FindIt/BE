@@ -1,13 +1,18 @@
 package com.example.find_it.domain;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 
-import static jakarta.persistence.GenerationType.IDENTITY;
+import java.time.LocalDate;
 
 @Entity
-public class LostItem extends BaseTimeEntity{
+@Getter
+@Setter
+public class LostItem extends BaseTimeEntity {
+
     @Id
-    @GeneratedValue(strategy = IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "lost_item_id")
     private Long id;
 
@@ -17,11 +22,16 @@ public class LostItem extends BaseTimeEntity{
 
     private String description;
 
+    private LocalDate lostDate;
+
     @OneToOne
     @JoinColumn(name = "reward_id")
     private Reward reward;
 
-    @Enumerated
-    private Status status;
+    @Enumerated(EnumType.STRING)
+    private LostItemStatus status;
 
+    @ManyToOne
+    @JoinColumn(name = "location_id")
+    private Location location;
 }
