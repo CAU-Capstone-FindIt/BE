@@ -35,3 +35,10 @@ out/
 
 ### VS Code ###
 .vscode/
+
+# 모든 .properties 파일을 무시
+*.properties
+application.yml
+
+# 예외: application.properties 파일은 포함
+!application.properties

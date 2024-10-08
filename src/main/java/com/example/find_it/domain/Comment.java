@@ -1,9 +1,6 @@
 package com.example.find_it.domain;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 
 import static jakarta.persistence.GenerationType.IDENTITY;
 
@@ -13,4 +10,8 @@ public class Comment {
     @GeneratedValue(strategy = IDENTITY)
     @Column(name = "comment_id")
     private Long id;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id")  // `User` 엔티티와의 연관 관계 설정
+    private User user;
 }
