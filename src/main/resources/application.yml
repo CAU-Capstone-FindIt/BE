@@ -1,0 +1,22 @@
+spring:
+  profiles:
+    include: SECRET-KEY
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+#    url: jdbc:mysql://${database-host}:3306/${database-name}
+    url: jdbc:mysql://localhost:13306/capstone
+    username: ${database-username}
+    password: ${database-password}
+
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+
+  logging.level:
+    org.hibernate.SQL: debug

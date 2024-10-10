@@ -26,16 +26,7 @@ public class User {
 
     private String profileImage;
     private int points;
-    private int rank;
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<LostItem> lostItems = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<FoundItem> foundItems = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
-    private List<PointTransaction> pointTransactions = new ArrayList<>();
+    private int ranking;
 
     // 카카오 회원가입을 위한 정적 팩토리 메소드
     public static User createKakaoUser(String authId, String name, String profileImage) {
@@ -44,7 +35,7 @@ public class User {
         user.setName(name);
         user.setProfileImage(profileImage);
         user.setPoints(0); // 초기 포인트
-        user.setRank(1);   // 초기 랭크
+        user.setRanking(1);   // 초기 랭크
         return user;
     }
 }
