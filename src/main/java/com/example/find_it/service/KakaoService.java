@@ -1,8 +1,11 @@
 package com.example.find_it.service;
 
+import com.example.find_it.domain.User;
 import com.example.find_it.dto.Response.KakaoTokenResponseDto;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
+import com.example.find_it.repository.UserRepository;
 import io.netty.handler.codec.http.HttpHeaderValues;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,9 +26,12 @@ public class KakaoService {
     private final String KAUTH_TOKEN_URL_HOST;
     private final String KAUTH_USER_URL_HOST;
 
+    private final UserRepository userRepository;
+
     @Autowired
-    public KakaoService(@Value("${kakao.client_id}") String clientId) {
+    public KakaoService(@Value("${kakao.client_id}") String clientId, UserRepository userRepository) {
         this.clientId = clientId;
+        this.userRepository = userRepository;
         KAUTH_TOKEN_URL_HOST ="https://kauth.kakao.com";
         KAUTH_USER_URL_HOST = "https://kapi.kakao.com";
     }
@@ -80,6 +86,40 @@ public class KakaoService {
         log.info("[ Kakao Service ] ProfileImageUrl ---> {} ", userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
 
         return userInfo;
+    }
+
+//    @Transactional
+//    public User registerOrLogin(KakaoUserInfoResponseDto userInfo) {
+//        String authId = "KAKAO_" + userInfo.getId();  // 카카오 식별자임을 명시
+//        log.info("Attempting to find or create user with authId: {}", authId);
+//
+//        // 기존 회원인지 확인
+//        return userRepository.findByAuthId(authId)
+//                .orElseGet(() -> createKakaoUser(userInfo, authId));
+//    }
+
+    @Transactional
+    public User registerOrLogin(KakaoUserInfoResponseDto userInfo) {
+        String authId = "KAKAO_" + userInfo.getId();
+        log.info("Attempting to find or create user with authId: {}", authId);
+
+        return userRepository.findByAuthId(authId)
+                .orElseGet(() -> {
+                    log.info("Creating new user with authId: {}", authId);
+                    User newUser = createKakaoUser(userInfo, authId);
+                    log.info("Successfully created new user with id: {}", newUser.getId());
+                    return newUser;
+                });
+    }
+
+    private User createKakaoUser(KakaoUserInfoResponseDto userInfo, String authId) {
+        return userRepository.save(
+                User.createKakaoUser(
+                        authId,
+                        userInfo.getKakaoAccount().getProfile().getNickName(),
+                        userInfo.getKakaoAccount().getProfile().getProfileImageUrl()
+                )
+        );
     }
 
 

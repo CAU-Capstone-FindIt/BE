@@ -1,5 +1,6 @@
 package com.example.find_it.controller;
 
+import com.example.find_it.domain.User;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.service.KakaoService;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,8 @@ public class KakaoLoginController {
 
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken);
 
-        return new ResponseEntity<>(HttpStatus.OK);
+        User user = kakaoService.registerOrLogin(userInfo);
+
+        return new ResponseEntity<>(user,HttpStatus.OK);
     }
 }
