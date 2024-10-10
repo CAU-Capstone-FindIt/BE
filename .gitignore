@@ -43,3 +43,4 @@ application.yml
 
 # 예외: application.properties 파일은 포함
 !application.properties
+!application-prod.properties
