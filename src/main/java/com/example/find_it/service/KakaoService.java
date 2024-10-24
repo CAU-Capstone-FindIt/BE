@@ -112,5 +112,22 @@ public class KakaoService {
         );
     }
 
+    public void logout(String accessToken) {
+        WebClient.create(KAUTH_USER_URL_HOST)
+                .post()
+                .uri(uriBuilder -> uriBuilder
+                        .scheme("https")
+                        .path("/v1/user/logout")
+                        .build(true))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
+                .retrieve()
+                .onStatus(HttpStatusCode::is4xxClientError, clientResponse ->
+                        Mono.error(new RuntimeException("Failed to logout: Invalid token")))
+                .onStatus(HttpStatusCode::is5xxServerError, clientResponse ->
+                        Mono.error(new RuntimeException("Kakao server error during logout")))
+                .bodyToMono(Void.class)
+                .block();
 
+        log.info("User successfully logged out from Kakao");
+    }
 }
