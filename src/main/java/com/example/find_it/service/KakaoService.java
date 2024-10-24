@@ -88,16 +88,6 @@ public class KakaoService {
         return userInfo;
     }
 
-//    @Transactional
-//    public User registerOrLogin(KakaoUserInfoResponseDto userInfo) {
-//        String authId = "KAKAO_" + userInfo.getId();  // 카카오 식별자임을 명시
-//        log.info("Attempting to find or create user with authId: {}", authId);
-//
-//        // 기존 회원인지 확인
-//        return userRepository.findByAuthId(authId)
-//                .orElseGet(() -> createKakaoUser(userInfo, authId));
-//    }
-
     @Transactional
     public User registerOrLogin(KakaoUserInfoResponseDto userInfo) {
         String authId = "KAKAO_" + userInfo.getId();
