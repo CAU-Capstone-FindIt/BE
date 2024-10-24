@@ -38,3 +38,4 @@ out/
 
 # 모든 .properties 파일을 무시
 *.properties
+firebaseworry.json
