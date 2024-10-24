@@ -6,6 +6,7 @@ import com.example.find_it.service.KakaoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
@@ -49,9 +50,19 @@ public class UserController {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String accessToken) {
-        // 여기서 로그아웃 처리 로직을 구현할 수 있습니다
-        // 예: 세션 제거, 토큰 무효화 등
-        return ResponseEntity.ok("Successfully logged out");
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+        try {
+            // Bearer 토큰에서 실제 액세스 토큰 추출
+            String accessToken = authHeader.replace("Bearer ", "");
+
+            // 카카오 로그아웃 호출
+            kakaoService.logout(accessToken);
+
+            return ResponseEntity.ok("Successfully logged out");
+        } catch (Exception e) {
+            log.error("Logout failed: ", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("Failed to logout: " + e.getMessage());
+        }
     }
 }
