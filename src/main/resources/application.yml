@@ -1,6 +1,6 @@
 spring:
   profiles:
-    include: SECRET-KEY
+    active: SECRET-KEY
 
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -24,3 +24,10 @@ spring:
 #Firebase 설정 추가
 fcm:
   certification: firebaseworry.json
+
+# OpenAI 설정 추가
+openai:
+  model: gpt-3.5-turbo
+  api:
+    url: "https://api.openai.com/v1/chat/completions"
+    key: ${openai.api.key}  # 환경 변수 또는 다른 프로파일 파일에서 참조

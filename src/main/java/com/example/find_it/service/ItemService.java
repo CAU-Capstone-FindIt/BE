@@ -6,26 +6,22 @@ import com.example.find_it.dto.LostItemDTO;
 import com.example.find_it.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class ItemService {
 
-    @Autowired
-    private LostItemRepository lostItemRepository;
-
-    @Autowired
-    private FoundItemRepository foundItemRepository;
-
-    @Autowired
-    private LocationRepository locationRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RewardRepository rewardRepository;
+    private final LostItemRepository lostItemRepository;
+    private final FoundItemRepository foundItemRepository;
+    private final LocationRepository locationRepository;
+    private final UserRepository userRepository;
+    private final RewardRepository rewardRepository;
+    private final OpenAIService openAIService;
 
     // 분실물 등록
     public void registerLostItem(LostItemDTO lostItemDTO) {
@@ -54,6 +50,13 @@ public class ItemService {
         lostItem.setStatus(lostItemDTO.getStatus());
 
         lostItemRepository.save(lostItem);
+
+        // OpenAI API를 사용해 유사 항목 추천
+        String prompt = "Find similar lost items for description: " + lostItemDTO.getDescription();
+        String result = openAIService.getSimilarItems(prompt);
+
+        log.info("Recommended similar items: {}", result);
+        // 결과를 분석하여 유사한 항목을 연결하고 알림 전송 로직을 추가할 수 있음
     }
 
     // 습득물 신고
@@ -75,6 +78,13 @@ public class ItemService {
         foundItem.setPhoto(foundItemDTO.getPhoto());
 
         foundItemRepository.save(foundItem);
+
+        // OpenAI API를 사용해 유사 항목 추천
+        String prompt = "Find similar found items for description: " + foundItemDTO.getDescription();
+        String result = openAIService.getSimilarItems(prompt);
+
+        log.info("Recommended similar items: {}", result);
+        // 결과를 분석하여 유사한 항목을 연결하고 알림 전송 로직을 추가할 수 있음
     }
 
     // 분실물 검색
@@ -87,4 +97,3 @@ public class ItemService {
         return foundItemRepository.findByDescriptionContaining(description);
     }
 }
-
