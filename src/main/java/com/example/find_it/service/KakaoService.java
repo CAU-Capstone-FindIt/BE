@@ -1,6 +1,8 @@
 package com.example.find_it.service;
 
+import com.example.find_it.dao.FCMTokenDao;
 import com.example.find_it.domain.User;
+import com.example.find_it.dto.LoginRequest;
 import com.example.find_it.dto.Response.KakaoTokenResponseDto;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.repository.UserRepository;
@@ -25,13 +27,16 @@ public class KakaoService {
     private String clientId;
     private final String KAUTH_TOKEN_URL_HOST;
     private final String KAUTH_USER_URL_HOST;
-
+    private final FCMTokenDao fcmTokenDao;
     private final UserRepository userRepository;
+    private final FCMService fcmService;
 
     @Autowired
-    public KakaoService(@Value("${kakao.client_id}") String clientId, UserRepository userRepository) {
+    public KakaoService(@Value("${kakao.client_id}") String clientId, FCMTokenDao fcmTokenDao, UserRepository userRepository, FCMService fcmService) {
         this.clientId = clientId;
+        this.fcmTokenDao = fcmTokenDao;
         this.userRepository = userRepository;
+        this.fcmService = fcmService;
         KAUTH_TOKEN_URL_HOST ="https://kauth.kakao.com";
         KAUTH_USER_URL_HOST = "https://kapi.kakao.com";
     }
@@ -89,17 +94,26 @@ public class KakaoService {
     }
 
     @Transactional
-    public User registerOrLogin(KakaoUserInfoResponseDto userInfo) {
+    public User registerOrLoginWithFCM(KakaoUserInfoResponseDto userInfo, LoginRequest loginRequest) {
         String authId = "KAKAO_" + userInfo.getId();
         log.info("Attempting to find or create user with authId: {}", authId);
 
-        return userRepository.findByAuthId(authId)
+        User user = userRepository.findByAuthId(authId)
                 .orElseGet(() -> {
                     log.info("Creating new user with authId: {}", authId);
                     User newUser = createKakaoUser(userInfo, authId);
                     log.info("Successfully created new user with id: {}", newUser.getId());
                     return newUser;
                 });
+
+        // FCM 토큰이 null이 아닐 경우에만 저장 및 환영 알림 전송
+        if (loginRequest.getToken() != null) {
+            fcmTokenDao.saveToken(authId, loginRequest.getToken());
+            fcmService.sendWelcomeNotification(loginRequest.getToken());
+        } else {
+            log.warn("No FCM token provided. Skipping FCM notification.");
+        }
+        return user;
     }
 
     private User createKakaoUser(KakaoUserInfoResponseDto userInfo, String authId) {
@@ -112,7 +126,7 @@ public class KakaoService {
         );
     }
 
-    public void logout(String accessToken) {
+    public void logout(String accessToken, String email) {
         WebClient.create(KAUTH_USER_URL_HOST)
                 .post()
                 .uri(uriBuilder -> uriBuilder
@@ -129,5 +143,8 @@ public class KakaoService {
                 .block();
 
         log.info("User successfully logged out from Kakao");
+
+        fcmTokenDao.deleteToken(email);
+
     }
 }

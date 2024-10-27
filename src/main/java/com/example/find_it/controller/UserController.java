@@ -1,6 +1,7 @@
 package com.example.find_it.controller;
 
 import com.example.find_it.domain.User;
+import com.example.find_it.dto.LoginRequest;
 import com.example.find_it.repository.UserRepository;
 import com.example.find_it.service.KakaoService;
 import lombok.RequiredArgsConstructor;
@@ -42,21 +43,32 @@ public class UserController {
     }
 
     @GetMapping("/login/callback")
-    public ResponseEntity<User> kakaoCallback(@RequestParam("code") String code) {
+    public ResponseEntity<User> kakaoCallback(@RequestParam("code") String code,
+                                              @RequestParam(value = "token", required = false) String fcmToken) {
+        // FCM 토큰이 있는 경우에만 저장
+        LoginRequest loginRequest = new LoginRequest();
+        if (fcmToken != null) {
+            loginRequest.setToken(fcmToken);
+        }
+
+        // 액세스 토큰 얻기 및 사용자 정보 가져오기
         String accessToken = kakaoService.getAccessTokenFromKakao(code);
         var userInfo = kakaoService.getUserInfo(accessToken);
-        User user = kakaoService.registerOrLogin(userInfo);
+
+        // 사용자 등록 또는 로그인 처리 및 FCM 토큰 저장 (있을 경우)
+        User user = kakaoService.registerOrLoginWithFCM(userInfo, loginRequest);
+
         return ResponseEntity.ok(user);
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader) {
+    public ResponseEntity<String> logout(@RequestHeader("Authorization") String authHeader, @RequestParam("email") String email) {
         try {
             // Bearer 토큰에서 실제 액세스 토큰 추출
             String accessToken = authHeader.replace("Bearer ", "");
 
             // 카카오 로그아웃 호출
-            kakaoService.logout(accessToken);
+            kakaoService.logout(accessToken, email);
 
             return ResponseEntity.ok("Successfully logged out");
         } catch (Exception e) {
