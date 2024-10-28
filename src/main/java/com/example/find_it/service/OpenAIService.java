@@ -41,7 +41,7 @@ public class OpenAIService {
     }
 
     public String testOpenAIConnection() {
-        String prompt = "곽성아 이름으로 삼행시 해줘. 그리고 내용은 성아의 생일을 축하해.";
+        String prompt = "오늘 날씨는 어때?";
 
         Map<String, Object> requestBody = Map.of(
                 "model", model,
