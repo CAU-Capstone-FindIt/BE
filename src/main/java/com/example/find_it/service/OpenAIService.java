@@ -1,15 +1,20 @@
 package com.example.find_it.service;
 
+import com.example.find_it.utils.ImageUtil;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.reactive.function.client.WebClient;
 
 import jakarta.annotation.PostConstruct;
-import java.util.List;
-import java.util.Map;
 
+import java.util.*;
+
+
+@Slf4j
 @Service
 public class OpenAIService {
 
@@ -58,33 +63,49 @@ public class OpenAIService {
                 .block();
     }
 
-    public String getSimilarItems(String prompt) {
-        // 요청 본문 생성
-        Map<String, Object> requestBody = Map.of(
-                "model", model,
-                "messages", List.of(
-                        Map.of("role", "user", "content", prompt)
-                )
-        );
-
-        // OpenAI API에 요청 보내기
-        String responseJson = webClient.post()
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(requestBody)
-                .retrieve()
-                .bodyToMono(String.class)
-                .block();
+    public String getSimilarItems(String imageUrl) {
+        String prompt = "지금부터 내가 보내주는 사진을 위의 조건에 부합하고 유의미한 데이터가 나오도록 분석해줘. 분석결과는 물건 명칭, 카테고리, 색상, 키워드 브랜드 순서로 출력해줘";
 
         try {
-            // JSON 응답 파싱
-            Map<String, Object> responseMap = objectMapper.readValue(responseJson, Map.class);
-            List<Map<String, Object>> choices = (List<Map<String, Object>>) responseMap.get("choices");
-            Map<String, Object> firstChoice = choices.get(0);
-            Map<String, Object> message = (Map<String, Object>) firstChoice.get("message");
+            // content를 List로 만들어 text와 image_url을 포함
+            List<Map<String, Object>> contentList = new ArrayList<>();
+            contentList.add(Map.of("type", "text", "text", prompt));
+            contentList.add(Map.of(
+                    "type", "image_url",
+                    "image_url", Map.of("url", imageUrl)
+            ));
 
-            return (String) message.get("content");
+            // messages 구조 생성
+            Map<String, Object> message = new HashMap<>();
+            message.put("role", "user");
+            message.put("content", contentList);
+
+            // 전체 요청 바디 생성
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("model", "gpt-4");  // 또는 실제 사용할 모델명
+            requestBody.put("messages", List.of(message));
+            requestBody.put("max_tokens", 300);
+
+            // Send request to OpenAI API
+            String responseJson = webClient.post()
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .bodyValue(requestBody)
+                    .retrieve()
+                    .bodyToMono(String.class)
+                    .block();
+
+            return responseJson;
+
         } catch (Exception e) {
-            throw new RuntimeException("Failed to parse OpenAI response", e);
+            log.error("Error processing request: ", e);
+            throw new RuntimeException("Failed to process image or OpenAI response", e);
         }
     }
+
+
+
+
+
+
+
 }

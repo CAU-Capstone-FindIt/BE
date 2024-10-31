@@ -4,6 +4,7 @@ import com.example.find_it.domain.*;
 import com.example.find_it.dto.FoundItemDTO;
 import com.example.find_it.dto.LostItemDTO;
 import com.example.find_it.repository.*;
+import com.example.find_it.utils.ImageUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -28,11 +29,14 @@ public class ItemService {
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Location location = saveLocation(lostItemDTO.getLatitude(), lostItemDTO.getLongitude(), lostItemDTO.getAddress());
-
         Reward reward = retrieveReward(lostItemDTO.getRewardId());
 
         LostItem lostItem = new LostItem();
         lostItem.setDescription(lostItemDTO.getDescription());
+        lostItem.setName(lostItemDTO.getName());
+        lostItem.setCategory(lostItemDTO.getCategory());
+        lostItem.setColor(lostItemDTO.getColor());
+        lostItem.setBrand(lostItemDTO.getBrand());
         lostItem.setLostDate(lostItemDTO.getLostDate());
         lostItem.setLocation(location);
         lostItem.setUser(user);
@@ -40,9 +44,6 @@ public class ItemService {
         lostItem.setStatus(lostItemDTO.getStatus());
 
         lostItemRepository.save(lostItem);
-
-        // 유사 항목 추천
-        recommendSimilarItems("lost", lostItemDTO.getDescription());
     }
 
     // 습득물 신고
@@ -59,10 +60,13 @@ public class ItemService {
         foundItem.setUser(user);
         foundItem.setPhoto(foundItemDTO.getPhoto());
 
+        // Set additional fields for found item
+        foundItem.setCategory(foundItemDTO.getCategory());
+        foundItem.setColor(foundItemDTO.getColor());
+        foundItem.setBrand(foundItemDTO.getBrand());
+
         foundItemRepository.save(foundItem);
 
-        // 유사 항목 추천
-        recommendSimilarItems("found", foundItemDTO.getDescription());
     }
 
     private Location saveLocation(double latitude, double longitude, String address) {
@@ -78,11 +82,6 @@ public class ItemService {
         return null;
     }
 
-    private void recommendSimilarItems(String type, String description) {
-        String prompt = String.format("Find similar %s items for description: %s", type, description);
-        String result = openAIService.getSimilarItems(prompt);
-        log.info("Recommended similar items: {}", result);
-    }
 
     // 분실물 검색
     public List<LostItem> searchLostItems(String description) {

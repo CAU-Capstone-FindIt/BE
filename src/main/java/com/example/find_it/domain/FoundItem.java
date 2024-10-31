@@ -6,8 +6,6 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 
-import static jakarta.persistence.GenerationType.IDENTITY;
-
 @Entity
 @Getter
 @Setter
@@ -23,7 +21,6 @@ public class FoundItem extends BaseTimeEntity {
     private User user;
 
     private String description;
-
     private LocalDate foundDate;
 
     @ManyToOne
@@ -31,4 +28,9 @@ public class FoundItem extends BaseTimeEntity {
     private Location location;
 
     private String photo;
+
+    // Additional fields
+    private String category;
+    private String color;
+    private String brand;
 }
