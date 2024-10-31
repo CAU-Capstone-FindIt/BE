@@ -4,49 +4,39 @@ import com.example.find_it.domain.*;
 import com.example.find_it.dto.FoundItemDTO;
 import com.example.find_it.dto.LostItemDTO;
 import com.example.find_it.repository.*;
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.find_it.utils.ImageUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+@Slf4j
 @Service
+@RequiredArgsConstructor
 public class ItemService {
 
-    @Autowired
-    private LostItemRepository lostItemRepository;
-
-    @Autowired
-    private FoundItemRepository foundItemRepository;
-
-    @Autowired
-    private LocationRepository locationRepository;
-
-    @Autowired
-    private UserRepository userRepository;
-
-    @Autowired
-    private RewardRepository rewardRepository;
+    private final LostItemRepository lostItemRepository;
+    private final FoundItemRepository foundItemRepository;
+    private final LocationRepository locationRepository;
+    private final UserRepository userRepository;
+    private final RewardRepository rewardRepository;
+    private final OpenAIService openAIService;
 
     // 분실물 등록
     public void registerLostItem(LostItemDTO lostItemDTO) {
-        // 사용자 정보 확인 및 로드
         User user = userRepository.findById(lostItemDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 위치 정보 생성
-        Location location = new Location(lostItemDTO.getLatitude(), lostItemDTO.getLongitude(), lostItemDTO.getAddress());
-        locationRepository.save(location);
+        Location location = saveLocation(lostItemDTO.getLatitude(), lostItemDTO.getLongitude(), lostItemDTO.getAddress());
+        Reward reward = retrieveReward(lostItemDTO.getRewardId());
 
-        // 보상 정보 로드 (선택 사항일 수 있음)
-        Reward reward = null;
-        if (lostItemDTO.getRewardId() != null) {
-            reward = rewardRepository.findById(lostItemDTO.getRewardId())
-                    .orElseThrow(() -> new RuntimeException("Reward not found"));
-        }
-
-        // 분실물 생성 및 저장
         LostItem lostItem = new LostItem();
         lostItem.setDescription(lostItemDTO.getDescription());
+        lostItem.setName(lostItemDTO.getName());
+        lostItem.setCategory(lostItemDTO.getCategory());
+        lostItem.setColor(lostItemDTO.getColor());
+        lostItem.setBrand(lostItemDTO.getBrand());
         lostItem.setLostDate(lostItemDTO.getLostDate());
         lostItem.setLocation(location);
         lostItem.setUser(user);
@@ -58,15 +48,11 @@ public class ItemService {
 
     // 습득물 신고
     public void reportFoundItem(FoundItemDTO foundItemDTO) {
-        // 사용자 정보 확인 및 로드
         User user = userRepository.findById(foundItemDTO.getUserId())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
-        // 위치 정보 생성
-        Location location = new Location(foundItemDTO.getLatitude(), foundItemDTO.getLongitude(), foundItemDTO.getAddress());
-        locationRepository.save(location);
+        Location location = saveLocation(foundItemDTO.getLatitude(), foundItemDTO.getLongitude(), foundItemDTO.getAddress());
 
-        // 습득물 생성 및 저장
         FoundItem foundItem = new FoundItem();
         foundItem.setDescription(foundItemDTO.getDescription());
         foundItem.setFoundDate(foundItemDTO.getFoundDate());
@@ -74,8 +60,28 @@ public class ItemService {
         foundItem.setUser(user);
         foundItem.setPhoto(foundItemDTO.getPhoto());
 
+        // Set additional fields for found item
+        foundItem.setCategory(foundItemDTO.getCategory());
+        foundItem.setColor(foundItemDTO.getColor());
+        foundItem.setBrand(foundItemDTO.getBrand());
+
         foundItemRepository.save(foundItem);
+
     }
+
+    private Location saveLocation(double latitude, double longitude, String address) {
+        Location location = new Location(latitude, longitude, address);
+        return locationRepository.save(location);
+    }
+
+    private Reward retrieveReward(Long rewardId) {
+        if (rewardId != null) {
+            return rewardRepository.findById(rewardId)
+                    .orElseThrow(() -> new IllegalArgumentException("Reward not found"));
+        }
+        return null;
+    }
+
 
     // 분실물 검색
     public List<LostItem> searchLostItems(String description) {
@@ -87,4 +93,3 @@ public class ItemService {
         return foundItemRepository.findByDescriptionContaining(description);
     }
 }
-

@@ -4,9 +4,11 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
-@Entity
+import java.time.LocalDateTime;
+
 @Getter
 @Setter
+@Entity
 public class PointTransaction {
 
     @Id
@@ -15,10 +17,11 @@ public class PointTransaction {
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    private User user;  // 포인트가 변동된 사용자
 
-    private int points;
+    private int points;  // 변동된 포인트 수량 (양수 또는 음수)
 
-    // 추가적인 거래 관련 정보가 필요할 경우 여기에 필드를 추가할 수 있습니다.
+    private LocalDateTime transactionDate = LocalDateTime.now();  // 거래 일시
+
+    private String description;  // 거래 설명 (예: "보상 지급", "포인트 차감" 등)
 }
-

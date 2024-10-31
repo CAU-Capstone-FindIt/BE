@@ -14,6 +14,10 @@ public class FoundItemDTO {
     private Double latitude;
     private Double longitude;
     private String address;
-    private String photo; // Base64 인코딩된 이미지 또는 파일 경로
+    private String photo;
 
+    // Additional fields to match the UI
+    private String category;
+    private String color;
+    private String brand;
 }
