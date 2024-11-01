@@ -46,6 +46,9 @@ dependencies {
 	// JSON 파싱을 위한 Jackson (이미 spring-boot-starter-web에 포함되어 있지만, 명시적으로 추가 가능)
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
 
+	//스프링 시큐리티
+	implementation 'org.springframework.boot:spring-boot-starter-security'
+
 }
 
 tasks.named('test') {
