@@ -27,7 +27,7 @@ public class RewardService {
             throw new IllegalArgumentException("Insufficient points for setting the reward.");
         }
 
-        // 보상 정보 생성 및 설정
+        // 보상 정보 생성 및 설정 (Setter 방식 사용)
         Reward reward = new Reward();
         reward.setAmount(rewardDTO.getAmount());
         reward.setCurrency("Points");
@@ -35,7 +35,8 @@ public class RewardService {
         reward.setLostUser(lostUser); // 보상을 설정한 사용자 (분실자)
 
         // 분실자 포인트 차감
-        lostUser.setPoints(lostUser.getPoints() - rewardDTO.getAmount());
+        lostUser.adjustPoints(-rewardDTO.getAmount()); // 포인트 차감 메서드 사용
+        userRepository.save(lostUser);
         rewardRepository.save(reward);
     }
 
@@ -60,10 +61,15 @@ public class RewardService {
         rewardRepository.save(reward);
 
         // 습득자의 포인트 업데이트 및 거래 내역 저장
-        foundUser.setPoints(foundUser.getPoints() + reward.getAmount());
-        PointTransaction transaction = new PointTransaction();
-        transaction.setPoints(reward.getAmount());
-        transaction.setUser(foundUser);
+        foundUser.adjustPoints(reward.getAmount()); // 포인트 추가 메서드 사용
+        userRepository.save(foundUser);
+
+        PointTransaction transaction = PointTransaction.builder()
+                .points(reward.getAmount())
+                .user(foundUser)
+                .description("보상 지급") // 거래 설명 추가 가능
+                .build();
+
         pointTransactionRepository.save(transaction);
     }
 }

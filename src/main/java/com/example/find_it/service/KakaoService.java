@@ -6,145 +6,97 @@ import com.example.find_it.dto.LoginRequest;
 import com.example.find_it.dto.Response.KakaoTokenResponseDto;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.repository.UserRepository;
-import io.netty.handler.codec.http.HttpHeaderValues;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
-import org.springframework.http.HttpStatusCode;
 
+import jakarta.transaction.Transactional;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatusCode;
+import io.netty.handler.codec.http.HttpHeaderValues;
 
 @Slf4j
-@RequiredArgsConstructor
 @Service
+@RequiredArgsConstructor
 public class KakaoService {
 
-    private String clientId;
-    private final String KAUTH_TOKEN_URL_HOST;
-    private final String KAUTH_USER_URL_HOST;
     private final FCMTokenDao fcmTokenDao;
     private final UserRepository userRepository;
     private final FCMService fcmService;
 
-    @Autowired
-    public KakaoService(@Value("${kakao.client_id}") String clientId, FCMTokenDao fcmTokenDao, UserRepository userRepository, FCMService fcmService) {
-        this.clientId = clientId;
-        this.fcmTokenDao = fcmTokenDao;
-        this.userRepository = userRepository;
-        this.fcmService = fcmService;
-        KAUTH_TOKEN_URL_HOST ="https://kauth.kakao.com";
-        KAUTH_USER_URL_HOST = "https://kapi.kakao.com";
-    }
+    @Value("${kakao.client_id}")
+    private String clientId;
 
+    private final String KAUTH_TOKEN_URL_HOST = "https://kauth.kakao.com";
+    private final String KAUTH_USER_URL_HOST = "https://kapi.kakao.com";
+
+    // 카카오에서 액세스 토큰을 가져오는 메서드
     public String getAccessTokenFromKakao(String code) {
-
         KakaoTokenResponseDto kakaoTokenResponseDto = WebClient.create(KAUTH_TOKEN_URL_HOST).post()
                 .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
                         .path("/oauth/token")
                         .queryParam("grant_type", "authorization_code")
                         .queryParam("client_id", clientId)
                         .queryParam("code", code)
-                        .build(true))
+                        .build())
                 .header(HttpHeaders.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())
                 .retrieve()
-                //TODO : Custom Exception
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Invalid Parameter")))
                 .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Internal Server Error")))
                 .bodyToMono(KakaoTokenResponseDto.class)
                 .block();
 
+        if (kakaoTokenResponseDto == null) {
+            throw new IllegalStateException("Failed to retrieve access token from Kakao");
+        }
 
-        log.info(" [Kakao Service] Access Token ------> {}", kakaoTokenResponseDto.getAccessToken());
-        log.info(" [Kakao Service] Refresh Token ------> {}", kakaoTokenResponseDto.getRefreshToken());
-        //제공 조건: OpenID Connect가 활성화 된 앱의 토큰 발급 요청인 경우 또는 scope에 openid를 포함한 추가 항목 동의 받기 요청을 거친 토큰 발급 요청인 경우
-        log.info(" [Kakao Service] Id Token ------> {}", kakaoTokenResponseDto.getIdToken());
-        log.info(" [Kakao Service] Scope ------> {}", kakaoTokenResponseDto.getScope());
-
+        log.info("[KakaoService] Access Token: {}", kakaoTokenResponseDto.getAccessToken());
         return kakaoTokenResponseDto.getAccessToken();
     }
 
     public KakaoUserInfoResponseDto getUserInfo(String accessToken) {
-
         KakaoUserInfoResponseDto userInfo = WebClient.create(KAUTH_USER_URL_HOST)
                 .get()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .path("/v2/user/me")
-                        .build(true))
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken) // access token 인가
+                .uri("/v2/user/me")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
                 .header(HttpHeaders.CONTENT_TYPE, HttpHeaderValues.APPLICATION_X_WWW_FORM_URLENCODED.toString())
                 .retrieve()
-                //TODO : Custom Exception
                 .onStatus(HttpStatusCode::is4xxClientError, clientResponse -> Mono.error(new RuntimeException("Invalid Parameter")))
                 .onStatus(HttpStatusCode::is5xxServerError, clientResponse -> Mono.error(new RuntimeException("Internal Server Error")))
                 .bodyToMono(KakaoUserInfoResponseDto.class)
                 .block();
 
-        log.info("[ Kakao Service ] Auth ID ---> {} ", userInfo.getId());
-        log.info("[ Kakao Service ] NickName ---> {} ", userInfo.getKakaoAccount().getProfile().getNickName());
-        log.info("[ Kakao Service ] ProfileImageUrl ---> {} ", userInfo.getKakaoAccount().getProfile().getProfileImageUrl());
+        if (userInfo == null) {
+            throw new IllegalStateException("Failed to retrieve user info from Kakao");
+        }
 
+        log.info("[KakaoService] Kakao User ID: {}", userInfo.getId());
         return userInfo;
     }
 
     @Transactional
-    public User registerOrLoginWithFCM(KakaoUserInfoResponseDto userInfo, LoginRequest loginRequest) {
+    public User registerOrLoginWithKakao(KakaoUserInfoResponseDto userInfo, LoginRequest loginRequest) {
         String authId = "KAKAO_" + userInfo.getId();
         log.info("Attempting to find or create user with authId: {}", authId);
 
         User user = userRepository.findByAuthId(authId)
                 .orElseGet(() -> {
                     log.info("Creating new user with authId: {}", authId);
-                    User newUser = createKakaoUser(userInfo, authId);
-                    log.info("Successfully created new user with id: {}", newUser.getId());
-                    return newUser;
+                    return userRepository.save(
+                            User.createKakaoUser(authId, userInfo.getKakaoAccount().getProfile().getNickName(),
+                                    userInfo.getKakaoAccount().getProfile().getProfileImageUrl()));
                 });
 
-        // FCM 토큰이 null이 아닐 경우에만 저장 및 환영 알림 전송
-        if (loginRequest.getToken() != null) {
+        if (loginRequest != null && loginRequest.getToken() != null) {
             fcmTokenDao.saveToken(authId, loginRequest.getToken());
             fcmService.sendWelcomeNotification(loginRequest.getToken());
         } else {
             log.warn("No FCM token provided. Skipping FCM notification.");
         }
+
         return user;
-    }
-
-    private User createKakaoUser(KakaoUserInfoResponseDto userInfo, String authId) {
-        return userRepository.save(
-                User.createKakaoUser(
-                        authId,
-                        userInfo.getKakaoAccount().getProfile().getNickName(),
-                        userInfo.getKakaoAccount().getProfile().getProfileImageUrl()
-                )
-        );
-    }
-
-    public void logout(String accessToken, String email) {
-        WebClient.create(KAUTH_USER_URL_HOST)
-                .post()
-                .uri(uriBuilder -> uriBuilder
-                        .scheme("https")
-                        .path("/v1/user/logout")
-                        .build(true))
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken)
-                .retrieve()
-                .onStatus(HttpStatusCode::is4xxClientError, clientResponse ->
-                        Mono.error(new RuntimeException("Failed to logout: Invalid token")))
-                .onStatus(HttpStatusCode::is5xxServerError, clientResponse ->
-                        Mono.error(new RuntimeException("Kakao server error during logout")))
-                .bodyToMono(Void.class)
-                .block();
-
-        log.info("User successfully logged out from Kakao");
-
-        fcmTokenDao.deleteToken(email);
-
     }
 }
