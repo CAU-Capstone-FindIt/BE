@@ -6,6 +6,7 @@ import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.service.KakaoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -16,6 +17,11 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
+@CrossOrigin(origins = {
+        "http://localhost:3000",
+        "http://findit.p-e.kr:8080",
+        "http://finditforcau.s3-website.ap-northeast-2.amazonaws.com"
+}, allowCredentials = "true")
 public class UserController {
 
     private final KakaoService kakaoService;
