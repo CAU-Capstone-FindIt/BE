@@ -53,4 +53,11 @@ public class ItemController {
         List<FoundItem> foundItems = itemService.searchFoundItems(description);
         return ResponseEntity.ok(foundItems);
     }
+
+    @Operation(summary = "모든 습득물 조회", description = "모든 습득물 항목을 조회합니다.")
+    @GetMapping("/found/all")
+    public ResponseEntity<List<FoundItem>> getAllFoundItems() {
+        List<FoundItem> foundItems = itemService.getAllFoundItems();
+        return ResponseEntity.ok(foundItems);
+    }
 }

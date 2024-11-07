@@ -92,4 +92,8 @@ public class ItemService {
     public List<FoundItem> searchFoundItems(String description) {
         return foundItemRepository.findByDescriptionContaining(description);
     }
+
+    public List<FoundItem> getAllFoundItems() {
+        return foundItemRepository.findAll();
+    }
 }
