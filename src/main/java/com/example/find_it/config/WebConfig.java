@@ -2,6 +2,8 @@ package com.example.find_it.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.multipart.MultipartResolver;
+import org.springframework.web.multipart.support.StandardServletMultipartResolver;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -25,5 +27,10 @@ public class WebConfig implements WebMvcConfigurer {
                         .maxAge(3600); // CORS 설정 캐시 시간 설정
             }
         };
+    }
+
+    @Bean
+    public MultipartResolver multipartResolver() {
+        return new StandardServletMultipartResolver();
     }
 }

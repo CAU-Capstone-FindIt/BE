@@ -6,6 +6,8 @@ import com.example.find_it.dto.LoginRequest;
 import com.example.find_it.dto.Response.KakaoTokenResponseDto;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.repository.UserRepository;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +19,8 @@ import jakarta.transaction.Transactional;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import io.netty.handler.codec.http.HttpHeaderValues;
+
+import java.util.Date;
 
 @Slf4j
 @Service
@@ -30,8 +34,23 @@ public class KakaoService {
     @Value("${kakao.client_id}")
     private String clientId;
 
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
+    @Value("${jwt.expiration}")
+    private long jwtExpirationMs;
+
     private final String KAUTH_TOKEN_URL_HOST = "https://kauth.kakao.com";
     private final String KAUTH_USER_URL_HOST = "https://kapi.kakao.com";
+
+    public String generateJwtToken(User user) {
+        return Jwts.builder()
+                .setSubject(user.getAuthId())
+                .setIssuedAt(new Date())
+                .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+    }
 
     // 카카오에서 액세스 토큰을 가져오는 메서드
     public String getAccessTokenFromKakao(String code) {
@@ -78,7 +97,7 @@ public class KakaoService {
     }
 
     @Transactional
-    public User registerOrLoginWithKakao(KakaoUserInfoResponseDto userInfo, LoginRequest loginRequest) {
+    public String registerOrLoginWithKakao(KakaoUserInfoResponseDto userInfo, LoginRequest loginRequest) {
         String authId = "KAKAO_" + userInfo.getId();
         log.info("Attempting to find or create user with authId: {}", authId);
 
@@ -97,6 +116,9 @@ public class KakaoService {
             log.warn("No FCM token provided. Skipping FCM notification.");
         }
 
-        return user;
+        // JWT 토큰 생성
+        String jwtToken = generateJwtToken(user);
+
+        return jwtToken;
     }
 }

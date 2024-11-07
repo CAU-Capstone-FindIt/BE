@@ -5,6 +5,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.Base64;
 
 @Slf4j
 @RestController
@@ -24,19 +27,23 @@ public class TestController {
     }
 
     @PostMapping("/get-similar-items/base64")
-    public ResponseEntity<String> getSimilarItemsFromUrl(@RequestParam("imageUrl") String imageUrl) {
-
+    public ResponseEntity<String> analyzeImage(@RequestParam("file") MultipartFile file) {
         try {
-            log.info("Received image URL: {}", imageUrl);
+            if (file.isEmpty()) {
+                return ResponseEntity.status(HttpStatus.BAD_REQUEST).body("File is missing.");
+            }
+            // 이미지 파일을 Base64로 인코딩
+            byte[] imageBytes = file.getBytes();
+            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
 
-            // Pass only the image URL to the OpenAIService (prompt is handled internally)
-            String response = openAIService.getSimilarItems(imageUrl);
-            return ResponseEntity.ok(response);
+            // OpenAI API에 이미지 분석 요청
+            String analysisResult = openAIService.analyzeImage(base64Image);
 
+            return ResponseEntity.ok(analysisResult);
         } catch (Exception e) {
-            log.error("Failed to process image URL or OpenAI response.", e);
+            log.error("Failed to analyze image", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body("Failed to process image URL or OpenAI response: " + e.getMessage());
+                    .body("Failed to analyze image: " + e.getMessage());
         }
     }
 
