@@ -42,6 +42,8 @@ public class UserController {
         response.put("accessToken", accessToken);
         response.put("user", user);
 
+        log.info("123");
+
         return response;
     }
 }
