@@ -25,7 +25,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .cors(cors -> cors.configurationSource(request -> {
+                    CorsConfiguration configuration = new CorsConfiguration();
+                    configuration.setAllowedOrigins(Arrays.asList("*"));
+                    configuration.setAllowedMethods(Arrays.asList("*"));
+                    configuration.setAllowedHeaders(Arrays.asList("*"));
+                    return configuration;
+                }))
                 .csrf(csrf -> csrf.disable())
                 .authorizeRequests(auth -> auth
                         .requestMatchers(
@@ -49,36 +55,29 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-
-        // 모든 HTTP 메서드 명시적으로 설정
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // 허용할 오리진 설정
-        configuration.setAllowedOrigins(Arrays.asList(
-                "http://localhost:3000",
-                "http://findit.p-e.kr:8080",
-                "http://finditforcau.s3-website.ap-northeast-2.amazonaws.com"
-        ));
-
-        // 허용할 헤더 명시적으로 설정
-        configuration.setAllowedHeaders(Arrays.asList(
-                "Authorization",
-                "Content-Type",
-                "Access-Control-Allow-Origin",
-                "Access-Control-Allow-Credentials"
-        ));
-
-        configuration.setAllowCredentials(true);
-        configuration.setMaxAge(3600L);
-
-        // 노출할 헤더 설정
-        configuration.setExposedHeaders(Arrays.asList("Authorization"));
-
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+//    @Bean
+//    public CorsConfigurationSource corsConfigurationSource() {
+//
+//        CorsConfiguration configuration = new CorsConfiguration();
+//
+////        // 모든 HTTP 메서드 명시적으로 설정
+////        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+//
+//        configuration.setAllowedMethods(Collections.singletonList("*"));
+////        // 허용할 오리진 설정
+////        configuration.setAllowedOrigins(Arrays.asList(
+////                "http://localhost:3000",
+////                "http://findit.p-e.kr:8080",
+////                "http://finditforcau.s3-website.ap-northeast-2.amazonaws.com"
+////        ));
+//        configuration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000"));
+//
+//        configuration.setAllowedHeaders(Collections.singletonList("*"));
+//        configuration.setAllowCredentials(true);
+//        configuration.setMaxAge(3600L);
+//
+////        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+////        source.registerCorsConfiguration("/**", configuration);
+//        return configuration;
+//    }
 }
