@@ -17,11 +17,6 @@ import java.util.Map;
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = {
-        "http://localhost:3000",
-        "http://findit.p-e.kr:8080",
-        "http://finditforcau.s3-website.ap-northeast-2.amazonaws.com"
-}, allowCredentials = "true")
 public class UserController {
 
     private final KakaoService kakaoService;
