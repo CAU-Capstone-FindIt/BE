@@ -44,29 +44,24 @@ public class UserController {
 
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
-        // Bearer 토큰 검증
+        log.info("Received Authorization header: {}", authHeader); // 토큰 로그 확인
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            log.warn("Authorization 헤더가 없거나 형식이 올바르지 않습니다.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT 토큰이 필요합니다.");
         }
 
         String token = authHeader.substring(7);
-
         try {
-            // JWT 토큰 파싱 및 유효성 검증
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
 
-            log.info("토큰 유효성 검증 성공: {}", claims.getSubject());
-
-            // JWT가 유효하면 로그아웃 성공 메시지 반환
             return ResponseEntity.ok("로그아웃 성공");
         } catch (Exception e) {
-            log.error("JWT 검증 오류: {}", e.getMessage());
+            log.error("JWT 검증 오류:", e); // 에러 로그 추가
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 JWT 토큰입니다.");
         }
     }
+
 }
