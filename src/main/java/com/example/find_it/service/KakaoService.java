@@ -49,7 +49,7 @@ public class KakaoService {
                 .signWith(SignatureAlgorithm.HS256, jwtSecret)
                 .compact();
 
-        return new JwtTokenDto(token, jwtExpirationMs);
+        return new JwtTokenDto(token, jwtExpirationMs, user.getName(), user.getProfileImage());
     }
 
     public String getAccessTokenFromKakao(String code) {
@@ -104,11 +104,15 @@ public class KakaoService {
                 .orElseGet(() -> {
                     log.info("Creating new user with authId: {}", authId);
                     return userRepository.save(
-                            User.createKakaoUser(authId, userInfo.getKakaoAccount().getProfile().getNickName(),
-                                    userInfo.getKakaoAccount().getProfile().getProfileImageUrl()));
+                            User.createKakaoUser(
+                                    authId,
+                                    userInfo.getKakaoAccount().getProfile().getNickName(),
+                                    userInfo.getKakaoAccount().getProfile().getProfileImageUrl()
+                            ));
                 });
 
         // JWT 토큰 생성 및 반환
         return generateJwtToken(user);
     }
+
 }
