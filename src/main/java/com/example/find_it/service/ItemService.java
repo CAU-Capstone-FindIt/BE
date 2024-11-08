@@ -111,6 +111,10 @@ public class ItemService {
         return foundItemRepository.findAll();
     }
 
+    public List<LostItem> getAllLostItems(){
+        return lostItemRepository.findAll();
+    }
+
     public LostItemResponse toLostItemResponse(LostItem lostItem) {
         LostItemResponse response = new LostItemResponse();
         response.setId(lostItem.getId());

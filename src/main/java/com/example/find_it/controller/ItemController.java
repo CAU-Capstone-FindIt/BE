@@ -67,4 +67,13 @@ public class ItemController {
                 .collect(Collectors.toList());
         return ResponseEntity.ok(foundItems);
     }
+
+    @Operation(summary = "모든 분실물 조회", description = "모든 습득물 항목을 조회합니다.")
+    @GetMapping("/lost/all")
+    public ResponseEntity<List<LostItemResponse>> getAllLostItems() {
+        List<LostItemResponse> lostItems = itemService.getAllLostItems().stream()
+                .map(itemService::toLostItemResponse)
+                .collect(Collectors.toList());
+        return ResponseEntity.ok(lostItems);
+    }
 }
