@@ -1,10 +1,12 @@
 package com.example.find_it.service;
 
 import com.example.find_it.domain.*;
-import com.example.find_it.dto.FoundItemDTO;
-import com.example.find_it.dto.LostItemDTO;
+import com.example.find_it.dto.Request.FoundItemRequest;
+import com.example.find_it.dto.Request.LostItemRequest;
+import com.example.find_it.dto.Response.FoundItemResponse;
+import com.example.find_it.dto.Response.LostItemResponse;
 import com.example.find_it.repository.*;
-import com.example.find_it.utils.ImageUtil;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,15 +23,34 @@ public class ItemService {
     private final LocationRepository locationRepository;
     private final UserRepository userRepository;
     private final RewardRepository rewardRepository;
-    private final OpenAIService openAIService;
 
-    // 분실물 등록
-    public void registerLostItem(LostItemDTO lostItemDTO) {
+    @Transactional
+    public void registerLostItem(LostItemRequest lostItemDTO) {
         User user = userRepository.findById(lostItemDTO.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        // Check if user has enough points if reward is requested
+        if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
+            if (user.getPoints() < lostItemDTO.getRewardAmount()) {
+                throw new IllegalArgumentException("Insufficient points for setting the reward.");
+            }
+            // Deduct points from user
+            user.adjustPoints(-lostItemDTO.getRewardAmount());
+            userRepository.save(user);
+        }
+
         Location location = saveLocation(lostItemDTO.getLatitude(), lostItemDTO.getLongitude(), lostItemDTO.getAddress());
-        Reward reward = retrieveReward(lostItemDTO.getRewardId());
+
+        // Create reward if amount is specified
+        Reward reward = null;
+        if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
+            reward = new Reward();
+            reward.setAmount(lostItemDTO.getRewardAmount());
+            reward.setCurrency("Points");
+            reward.setStatus(RewardStatus.PENDING);
+            reward.setLostUser(user);
+            reward = rewardRepository.save(reward);
+        }
 
         LostItem lostItem = new LostItem();
         lostItem.setDescription(lostItemDTO.getDescription());
@@ -46,8 +67,7 @@ public class ItemService {
         lostItemRepository.save(lostItem);
     }
 
-    // 습득물 신고
-    public void reportFoundItem(FoundItemDTO foundItemDTO) {
+    public void reportFoundItem(FoundItemRequest foundItemDTO) {
         User user = userRepository.findById(foundItemDTO.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
@@ -59,14 +79,11 @@ public class ItemService {
         foundItem.setLocation(location);
         foundItem.setUser(user);
         foundItem.setPhoto(foundItemDTO.getPhoto());
-
-        // Set additional fields for found item
-        foundItem.setCategory(foundItemDTO.getCategory());
+        foundItem.setCategory(foundItemDTO.getCategory());  // Category Enum으로 설정
         foundItem.setColor(foundItemDTO.getColor());
         foundItem.setBrand(foundItemDTO.getBrand());
 
         foundItemRepository.save(foundItem);
-
     }
 
     private Location saveLocation(double latitude, double longitude, String address) {
@@ -82,14 +99,54 @@ public class ItemService {
         return null;
     }
 
-
-    // 분실물 검색
     public List<LostItem> searchLostItems(String description) {
         return lostItemRepository.findByDescriptionContaining(description);
     }
 
-    // 습득물 검색
     public List<FoundItem> searchFoundItems(String description) {
         return foundItemRepository.findByDescriptionContaining(description);
+    }
+
+    public List<FoundItem> getAllFoundItems() {
+        return foundItemRepository.findAll();
+    }
+
+    public List<LostItem> getAllLostItems(){
+        return lostItemRepository.findAll();
+    }
+
+    public LostItemResponse toLostItemResponse(LostItem lostItem) {
+        LostItemResponse response = new LostItemResponse();
+        response.setId(lostItem.getId());
+        response.setUserId(lostItem.getUser().getId());
+        response.setName(lostItem.getName());
+        response.setCategory(lostItem.getCategory());
+        response.setColor(lostItem.getColor());
+        response.setBrand(lostItem.getBrand());
+        response.setDescription(lostItem.getDescription());
+        response.setLostDate(lostItem.getLostDate());
+        response.setAddress(lostItem.getLocation().getAddress());
+        response.setRewardId(lostItem.getReward() != null ? lostItem.getReward().getId() : null);
+        response.setStatus(lostItem.getStatus());
+        response.setCreatedDate(lostItem.getCreatedDate());
+        response.setModifiedDate(lostItem.getModifiedDate());
+        return response;
+    }
+
+    // FoundItemResponse로 변환하는 메서드 추가
+    public FoundItemResponse toFoundItemResponse(FoundItem foundItem) {
+        FoundItemResponse response = new FoundItemResponse();
+        response.setId(foundItem.getId());
+        response.setUserId(foundItem.getUser().getId());
+        response.setDescription(foundItem.getDescription());
+        response.setFoundDate(foundItem.getFoundDate());
+        response.setAddress(foundItem.getLocation().getAddress());
+        response.setPhoto(foundItem.getPhoto());
+        response.setCategory(foundItem.getCategory());
+        response.setColor(foundItem.getColor());
+        response.setBrand(foundItem.getBrand());
+        response.setCreatedDate(foundItem.getCreatedDate());
+        response.setModifiedDate(foundItem.getModifiedDate());
+        return response;
     }
 }

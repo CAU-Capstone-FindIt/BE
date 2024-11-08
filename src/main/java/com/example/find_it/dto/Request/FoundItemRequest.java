@@ -1,5 +1,6 @@
-package com.example.find_it.dto;
+package com.example.find_it.dto.Request;
 
+import com.example.find_it.domain.Category;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -7,7 +8,7 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class FoundItemDTO {
+public class FoundItemRequest {
     private Long userId;
     private String description;
     private LocalDate foundDate;
@@ -17,7 +18,7 @@ public class FoundItemDTO {
     private String photo;
 
     // Additional fields to match the UI
-    private String category;
+    private Category category;
     private String color;
     private String brand;
 }

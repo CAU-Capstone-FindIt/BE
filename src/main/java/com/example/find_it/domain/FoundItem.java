@@ -29,8 +29,8 @@ public class FoundItem extends BaseTimeEntity {
 
     private String photo;
 
-    // Additional fields
-    private String category;
+    @Enumerated(EnumType.STRING)
+    private Category category;  // Category Enum으로 수정
     private String color;
     private String brand;
 }

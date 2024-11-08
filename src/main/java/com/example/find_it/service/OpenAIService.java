@@ -61,49 +61,39 @@ public class OpenAIService {
                 .block();
     }
 
-    public String getSimilarItems(String imageUrl) {
-        String prompt = "지금부터 내가 보내주는 사진을 위의 조건에 부합하고 유의미한 데이터가 나오도록 분석해줘. 분석결과는 물건 명칭, 카테고리, 색상, 키워드 브랜드 순서로 출력해줘";
-
+    public String analyzeImage(String base64Image) {
         try {
-            // content를 List로 만들어 text와 image_url을 포함
-            List<Map<String, Object>> contentList = new ArrayList<>();
-            contentList.add(Map.of("type", "text", "text", prompt));
-            contentList.add(Map.of(
-                    "type", "image_url",
-                    "image_url", Map.of("url", imageUrl)
-            ));
+            // System 메시지와 사용자 메시지를 포함하는 메시지 배열 생성
+            Map<String, Object> systemMessage = Map.of(
+                    "role", "system",
+                    "content", "You are an assistant that analyzes images to identify item name, category, color, keywords, and brand in the given order."
+            );
 
-            // messages 구조 생성
-            Map<String, Object> message = new HashMap<>();
-            message.put("role", "user");
-            message.put("content", contentList);
+            Map<String, Object> userMessage = Map.of(
+                    "role", "user",
+                    "content", "data:image/jpeg;base64," + base64Image
+            );
 
-            // 전체 요청 바디 생성
+            // 요청 바디 생성
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("model", "gpt-4");  // 또는 실제 사용할 모델명
-            requestBody.put("messages", List.of(message));
-            requestBody.put("max_tokens", 300);
+            requestBody.put("model", model);
+            requestBody.put("messages", List.of(systemMessage, userMessage));
+            requestBody.put("max_tokens", 500);
+            requestBody.put("temperature", 0.5);
 
-            // Send request to OpenAI API
-            String responseJson = webClient.post()
+            // OpenAI API로 POST 요청 전송
+            return webClient.post()
                     .contentType(MediaType.APPLICATION_JSON)
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(String.class)
                     .block();
 
-            return responseJson;
-
         } catch (Exception e) {
-            log.error("Error processing request: ", e);
-            throw new RuntimeException("Failed to process image or OpenAI response", e);
+            log.error("Error processing image analysis request: ", e);
+            throw new RuntimeException("Failed to analyze image with OpenAI", e);
         }
     }
 
-
-
-
-
-
-
 }
+
