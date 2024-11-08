@@ -6,6 +6,7 @@ import com.example.find_it.dto.Request.LostItemRequest;
 import com.example.find_it.dto.Response.FoundItemResponse;
 import com.example.find_it.dto.Response.LostItemResponse;
 import com.example.find_it.repository.*;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,17 +24,38 @@ public class ItemService {
     private final UserRepository userRepository;
     private final RewardRepository rewardRepository;
 
+    @Transactional
     public void registerLostItem(LostItemRequest lostItemDTO) {
         User user = userRepository.findById(lostItemDTO.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
+        // Check if user has enough points if reward is requested
+        if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
+            if (user.getPoints() < lostItemDTO.getRewardAmount()) {
+                throw new IllegalArgumentException("Insufficient points for setting the reward.");
+            }
+            // Deduct points from user
+            user.adjustPoints(-lostItemDTO.getRewardAmount());
+            userRepository.save(user);
+        }
+
         Location location = saveLocation(lostItemDTO.getLatitude(), lostItemDTO.getLongitude(), lostItemDTO.getAddress());
-        Reward reward = retrieveReward(lostItemDTO.getRewardId());
+
+        // Create reward if amount is specified
+        Reward reward = null;
+        if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
+            reward = new Reward();
+            reward.setAmount(lostItemDTO.getRewardAmount());
+            reward.setCurrency("Points");
+            reward.setStatus(RewardStatus.PENDING);
+            reward.setLostUser(user);
+            reward = rewardRepository.save(reward);
+        }
 
         LostItem lostItem = new LostItem();
         lostItem.setDescription(lostItemDTO.getDescription());
         lostItem.setName(lostItemDTO.getName());
-        lostItem.setCategory(lostItemDTO.getCategory());  // Category Enum으로 설정
+        lostItem.setCategory(lostItemDTO.getCategory());
         lostItem.setColor(lostItemDTO.getColor());
         lostItem.setBrand(lostItemDTO.getBrand());
         lostItem.setLostDate(lostItemDTO.getLostDate());

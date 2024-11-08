@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Entity
 @Getter
@@ -28,7 +29,7 @@ public class LostItem extends BaseTimeEntity {
     private String color;
     private String brand;
 
-    private LocalDate lostDate;
+    private LocalDateTime lostDate;
 
     @OneToOne
     @JoinColumn(name = "reward_id")
