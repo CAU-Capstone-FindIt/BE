@@ -46,6 +46,7 @@ public class UserController {
     public ResponseEntity<String> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         // Bearer 토큰 검증
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            log.warn("Authorization 헤더가 없거나 형식이 올바르지 않습니다.");
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT 토큰이 필요합니다.");
         }
 
@@ -59,9 +60,12 @@ public class UserController {
                     .parseClaimsJws(token)
                     .getBody();
 
+            log.info("토큰 유효성 검증 성공: {}", claims.getSubject());
+
             // JWT가 유효하면 로그아웃 성공 메시지 반환
             return ResponseEntity.ok("로그아웃 성공");
         } catch (Exception e) {
+            log.error("JWT 검증 오류: {}", e.getMessage());
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 JWT 토큰입니다.");
         }
     }
