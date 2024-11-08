@@ -3,7 +3,7 @@ spring:
     active: SECRET-KEY
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    # url: jdbc:mysql://${database-host}:3306/${database-name}
+    # url: jdbc:mysql://${database-host}/${database-name}
     url: jdbc:mysql://localhost:13306/capstone
     username: ${database-username}
     password: ${database-password}
