@@ -4,10 +4,18 @@ import com.example.find_it.dto.JwtTokenDto;
 import com.example.find_it.dto.LoginRequest;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.service.KakaoService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.nio.charset.StandardCharsets;
+import java.security.Key;
 
 @Slf4j
 @RestController
@@ -16,6 +24,12 @@ import org.springframework.web.bind.annotation.*;
 public class UserController {
 
     private final KakaoService kakaoService;
+
+    // jwtSecret을 이용해 JWT 서명 키를 생성하는 메서드
+    private Key getSigningKey() {
+        String jwtSecret = kakaoService.getJwtSecret();  // KakaoService의 jwtSecret 사용
+        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    }
 
     @PostMapping("/login/callback")
     public ResponseEntity<JwtTokenDto> kakaoLogin(@RequestBody LoginRequest loginRequest) {
@@ -26,5 +40,29 @@ public class UserController {
 
         // JwtTokenDto를 JSON 형식으로 반환
         return ResponseEntity.ok(jwtToken);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<String> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+        // Bearer 토큰 검증
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT 토큰이 필요합니다.");
+        }
+
+        String token = authHeader.substring(7);
+
+        try {
+            // JWT 토큰 파싱 및 유효성 검증
+            Claims claims = Jwts.parserBuilder()
+                    .setSigningKey(getSigningKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+
+            // JWT가 유효하면 로그아웃 성공 메시지 반환
+            return ResponseEntity.ok("로그아웃 성공");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 JWT 토큰입니다.");
+        }
     }
 }

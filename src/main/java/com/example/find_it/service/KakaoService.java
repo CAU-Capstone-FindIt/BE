@@ -2,7 +2,6 @@ package com.example.find_it.service;
 
 import com.example.find_it.domain.User;
 import com.example.find_it.dto.JwtTokenDto;
-import com.example.find_it.dto.LoginRequest;
 import com.example.find_it.dto.Response.KakaoTokenResponseDto;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.repository.UserRepository;
@@ -50,6 +49,10 @@ public class KakaoService {
                 .compact();
 
         return new JwtTokenDto(token, jwtExpirationMs, user.getName(), user.getProfileImage());
+    }
+
+    public String getJwtSecret() {
+        return jwtSecret;
     }
 
     public String getAccessTokenFromKakao(String code) {
