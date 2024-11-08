@@ -28,6 +28,7 @@ public class UserController {
     // jwtSecret을 이용해 JWT 서명 키를 생성하는 메서드
     private Key getSigningKey() {
         String jwtSecret = kakaoService.getJwtSecret();  // KakaoService의 jwtSecret 사용
+        log.info("Using jwtSecret for signing key: {}", jwtSecret); // jwtSecret 로그 확인
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
 
@@ -51,17 +52,18 @@ public class UserController {
 
         String token = authHeader.substring(7);
         try {
+            log.info("Attempting to parse token: {}", token); // 파싱할 JWT 토큰 로그 확인
             Claims claims = Jwts.parserBuilder()
                     .setSigningKey(getSigningKey())
                     .build()
                     .parseClaimsJws(token)
                     .getBody();
 
+            log.info("Parsed claims: {}", claims); // 파싱된 claims 로그 확인
             return ResponseEntity.ok("로그아웃 성공");
         } catch (Exception e) {
             log.error("JWT 검증 오류:", e); // 에러 로그 추가
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 JWT 토큰입니다.");
         }
     }
-
 }
