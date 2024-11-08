@@ -47,27 +47,36 @@ public class UserController {
         return ResponseEntity.ok(jwtToken);
     }
 
+//    @PostMapping("/logout")
+//    public ResponseEntity<String> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
+//        log.info("Received Authorization header: {}", authHeader); // 토큰 로그 확인
+//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT 토큰이 필요합니다.");
+//        }
+//
+//        String token = authHeader.substring(7);
+//        try {
+//            log.info("Attempting to parse token: {}", token); // 파싱할 JWT 토큰 로그 확인
+//            Claims claims = Jwts.parserBuilder()
+//                    .setSigningKey(getSigningKey())
+//                    .build()
+//                    .parseClaimsJws(token)
+//                    .getBody();
+//
+//            log.info("Parsed claims: {}", claims); // 파싱된 claims 로그 확인
+//            return ResponseEntity.ok("로그아웃 성공");
+//        } catch (Exception e) {
+//            log.error("JWT 검증 오류:", e); // 에러 로그 추가
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 JWT 토큰입니다.");
+//        }
+//    }
+
     @PostMapping("/logout")
     public ResponseEntity<String> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
         log.info("Received Authorization header: {}", authHeader); // 토큰 로그 확인
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT 토큰이 필요합니다.");
-        }
 
-        String token = authHeader.substring(7);
-        try {
-            log.info("Attempting to parse token: {}", token); // 파싱할 JWT 토큰 로그 확인
-            Claims claims = Jwts.parserBuilder()
-                    .setSigningKey(getSigningKey())
-                    .build()
-                    .parseClaimsJws(token)
-                    .getBody();
-
-            log.info("Parsed claims: {}", claims); // 파싱된 claims 로그 확인
-            return ResponseEntity.ok("로그아웃 성공");
-        } catch (Exception e) {
-            log.error("JWT 검증 오류:", e); // 에러 로그 추가
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 JWT 토큰입니다.");
-        }
+        // JWT 검증 없이 로그아웃 처리
+        log.info("JWT 검증 없이 로그아웃 성공 처리");
+        return ResponseEntity.ok("로그아웃 성공");
     }
 }
