@@ -2,17 +2,14 @@
 package com.example.find_it.controller;
 
 import com.example.find_it.dto.JwtTokenDto;
-import com.example.find_it.dto.LoginRequest;
+import com.example.find_it.dto.Request.LoginRequest;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.service.KakaoService;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

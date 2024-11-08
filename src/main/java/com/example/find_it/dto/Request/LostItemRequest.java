@@ -1,5 +1,6 @@
-package com.example.find_it.dto;
+package com.example.find_it.dto.Request;
 
+import com.example.find_it.domain.Category;
 import com.example.find_it.domain.LostItemStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -8,10 +9,10 @@ import java.time.LocalDate;
 
 @Getter
 @Setter
-public class LostItemDTO {
+public class LostItemRequest {
     private Long userId;             // 사용자 ID
     private String name;             // 분실물 이름 (예: "아이폰 미니 13")
-    private String category;         // 분실물 카테고리 (예: "전자기기")
+    private Category category;         // 분실물 카테고리 (예: "전자기기")
     private String color;            // 분실물 색상 (예: "초록색")
     private String brand;            // 분실물 브랜드 (예: "Apple")
     private String description;      // 분실물에 대한 설명

@@ -1,4 +1,4 @@
-package com.example.find_it.dto;
+package com.example.find_it.dto.Request;
 
 public class LoginRequest {
     private String code;
