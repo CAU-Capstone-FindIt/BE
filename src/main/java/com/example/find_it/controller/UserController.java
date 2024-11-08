@@ -9,6 +9,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -25,9 +26,11 @@ public class UserController {
 
     private final KakaoService kakaoService;
 
+    @Value("${jwt.secret}")
+    private String jwtSecret;
+
     // jwtSecret을 이용해 JWT 서명 키를 생성하는 메서드
     private Key getSigningKey() {
-        String jwtSecret = kakaoService.getJwtSecret();  // KakaoService의 jwtSecret 사용
         log.info("Using jwtSecret for signing key: {}", jwtSecret); // jwtSecret 로그 확인
         return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
     }
