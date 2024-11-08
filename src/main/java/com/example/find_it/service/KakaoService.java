@@ -1,6 +1,5 @@
 package com.example.find_it.service;
 
-import com.example.find_it.dao.FCMTokenDao;
 import com.example.find_it.domain.User;
 import com.example.find_it.dto.JwtTokenDto;
 import com.example.find_it.dto.LoginRequest;
@@ -28,9 +27,7 @@ import java.util.Date;
 @RequiredArgsConstructor
 public class KakaoService {
 
-    private final FCMTokenDao fcmTokenDao;
     private final UserRepository userRepository;
-    private final FCMService fcmService;
 
     @Value("${kakao.client_id}")
     private String clientId;
@@ -55,7 +52,6 @@ public class KakaoService {
         return new JwtTokenDto(token, jwtExpirationMs);
     }
 
-    // 카카오에서 액세스 토큰을 가져오는 메서드
     public String getAccessTokenFromKakao(String code) {
         KakaoTokenResponseDto kakaoTokenResponseDto = WebClient.create(KAUTH_TOKEN_URL_HOST).post()
                 .uri(uriBuilder -> uriBuilder
@@ -100,7 +96,7 @@ public class KakaoService {
     }
 
     @Transactional
-    public JwtTokenDto registerOrLoginWithKakao(KakaoUserInfoResponseDto userInfo, LoginRequest loginRequest) {
+    public JwtTokenDto registerOrLoginWithKakao(KakaoUserInfoResponseDto userInfo) {
         String authId = "KAKAO_" + userInfo.getId();
         log.info("Attempting to find or create user with authId: {}", authId);
 
@@ -112,15 +108,7 @@ public class KakaoService {
                                     userInfo.getKakaoAccount().getProfile().getProfileImageUrl()));
                 });
 
-        if (loginRequest != null && loginRequest.getToken() != null) {
-            fcmTokenDao.saveToken(authId, loginRequest.getToken());
-            fcmService.sendWelcomeNotification(loginRequest.getToken());
-        } else {
-            log.warn("No FCM token provided. Skipping FCM notification.");
-        }
-
         // JWT 토큰 생성 및 반환
         return generateJwtToken(user);
     }
-
 }

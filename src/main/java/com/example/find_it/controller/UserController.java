@@ -9,12 +9,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Map;
-
 @Slf4j
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/users") // 컨트롤러의 공통 경로 추가
+@RequestMapping("/api/users")
 public class UserController {
 
     private final KakaoService kakaoService;
@@ -24,10 +22,9 @@ public class UserController {
         String code = loginRequest.getCode(); // 프론트에서 받은 인가 코드
         String accessToken = kakaoService.getAccessTokenFromKakao(code); // 카카오 액세스 토큰 가져오기
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken); // 사용자 정보 가져오기
-        JwtTokenDto jwtToken = kakaoService.registerOrLoginWithKakao(userInfo, loginRequest); // 사용자 등록 및 JWT 발급
+        JwtTokenDto jwtToken = kakaoService.registerOrLoginWithKakao(userInfo); // 사용자 등록 및 JWT 발급
 
         // JwtTokenDto를 JSON 형식으로 반환
         return ResponseEntity.ok(jwtToken);
     }
-
 }
