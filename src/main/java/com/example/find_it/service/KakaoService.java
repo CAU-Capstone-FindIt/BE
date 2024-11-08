@@ -2,6 +2,7 @@ package com.example.find_it.service;
 
 import com.example.find_it.dao.FCMTokenDao;
 import com.example.find_it.domain.User;
+import com.example.find_it.dto.JwtTokenDto;
 import com.example.find_it.dto.LoginRequest;
 import com.example.find_it.dto.Response.KakaoTokenResponseDto;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
@@ -43,13 +44,15 @@ public class KakaoService {
     private final String KAUTH_TOKEN_URL_HOST = "https://kauth.kakao.com";
     private final String KAUTH_USER_URL_HOST = "https://kapi.kakao.com";
 
-    public String generateJwtToken(User user) {
-        return Jwts.builder()
+    public JwtTokenDto generateJwtToken(User user) {
+        String token = Jwts.builder()
                 .setSubject(user.getAuthId())
                 .setIssuedAt(new Date())
                 .setExpiration(new Date((new Date()).getTime() + jwtExpirationMs))
                 .signWith(SignatureAlgorithm.HS512, jwtSecret)
                 .compact();
+
+        return new JwtTokenDto(token, jwtExpirationMs);
     }
 
     // 카카오에서 액세스 토큰을 가져오는 메서드
@@ -97,7 +100,7 @@ public class KakaoService {
     }
 
     @Transactional
-    public String registerOrLoginWithKakao(KakaoUserInfoResponseDto userInfo, LoginRequest loginRequest) {
+    public JwtTokenDto registerOrLoginWithKakao(KakaoUserInfoResponseDto userInfo, LoginRequest loginRequest) {
         String authId = "KAKAO_" + userInfo.getId();
         log.info("Attempting to find or create user with authId: {}", authId);
 
@@ -116,9 +119,8 @@ public class KakaoService {
             log.warn("No FCM token provided. Skipping FCM notification.");
         }
 
-        // JWT 토큰 생성
-        String jwtToken = generateJwtToken(user);
-
-        return jwtToken;
+        // JWT 토큰 생성 및 반환
+        return generateJwtToken(user);
     }
+
 }

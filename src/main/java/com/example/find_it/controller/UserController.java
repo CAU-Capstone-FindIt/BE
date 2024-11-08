@@ -1,5 +1,6 @@
 package com.example.find_it.controller;
 
+import com.example.find_it.dto.JwtTokenDto;
 import com.example.find_it.dto.LoginRequest;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.service.KakaoService;
@@ -19,13 +20,14 @@ public class UserController {
     private final KakaoService kakaoService;
 
     @PostMapping("/login/callback")
-    public ResponseEntity<?> kakaoLogin(@RequestBody LoginRequest loginRequest) {
+    public ResponseEntity<JwtTokenDto> kakaoLogin(@RequestBody LoginRequest loginRequest) {
         String code = loginRequest.getCode(); // 프론트에서 받은 인가 코드
         String accessToken = kakaoService.getAccessTokenFromKakao(code); // 카카오 액세스 토큰 가져오기
         KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken); // 사용자 정보 가져오기
-        String jwtToken = kakaoService.registerOrLoginWithKakao(userInfo, loginRequest); // 사용자 등록 및 JWT 발급
+        JwtTokenDto jwtToken = kakaoService.registerOrLoginWithKakao(userInfo, loginRequest); // 사용자 등록 및 JWT 발급
 
-        // JWT 토큰을 JSON 형식으로 반환
-        return ResponseEntity.ok().body(Map.of("jwtToken", jwtToken));
+        // JwtTokenDto를 JSON 형식으로 반환
+        return ResponseEntity.ok(jwtToken);
     }
+
 }
