@@ -240,6 +240,12 @@ public class ItemService {
         response.setBrand(foundItem.getBrand());
         response.setCreatedDate(foundItem.getCreatedDate());
         response.setModifiedDate(foundItem.getModifiedDate());
+
+        List<FoundItemCommentResponse> comments = foundItem.getComments().stream()
+                .map(this::toFoundItemCommentResponse)
+                .collect(Collectors.toList());
+        response.setComments(comments);
+
         return response;
     }
 

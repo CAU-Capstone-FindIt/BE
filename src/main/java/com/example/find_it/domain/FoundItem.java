@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -33,4 +35,7 @@ public class FoundItem extends BaseTimeEntity {
     private Category category;  // Category Enum으로 수정
     private String color;
     private String brand;
+
+    @OneToMany(mappedBy = "foundItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<FoundItemComment> comments = new ArrayList<>();
 }
