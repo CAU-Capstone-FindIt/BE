@@ -1,8 +1,12 @@
 package com.example.find_it.controller;
 
+import com.example.find_it.dto.Request.FoundItemCommentRequest;
 import com.example.find_it.dto.Request.FoundItemRequest;
+import com.example.find_it.dto.Request.LostItemCommentRequest;
 import com.example.find_it.dto.Request.LostItemRequest;
+import com.example.find_it.dto.Response.FoundItemCommentResponse;
 import com.example.find_it.dto.Response.FoundItemResponse;
+import com.example.find_it.dto.Response.LostItemCommentResponse;
 import com.example.find_it.dto.Response.LostItemResponse;
 import com.example.find_it.service.ItemService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -75,5 +79,61 @@ public class ItemController {
                 .map(itemService::toLostItemResponse)
                 .collect(Collectors.toList());
         return ResponseEntity.ok(lostItems);
+    }
+
+    // LostItemComment 등록
+    @Operation(summary = "분실물 댓글 등록", description = "분실물에 댓글을 등록합니다.")
+    @PostMapping("/lost/comment")
+    public ResponseEntity<LostItemCommentResponse> registerLostItemComment(
+            @Parameter(description = "분실물 댓글 정보") @RequestBody LostItemCommentRequest request) {
+        LostItemCommentResponse response = itemService.registerLostItemComment(request);
+        return ResponseEntity.ok(response);
+    }
+
+    // LostItemComment 수정
+    @Operation(summary = "분실물 댓글 수정", description = "분실물 댓글을 수정합니다.")
+    @PutMapping("/lost/comment/{commentId}")
+    public ResponseEntity<LostItemCommentResponse> updateLostItemComment(
+            @Parameter(description = "댓글 ID") @PathVariable Long commentId,
+            @Parameter(description = "수정할 댓글 정보") @RequestBody LostItemCommentRequest request) {
+        LostItemCommentResponse response = itemService.updateLostItemComment(commentId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    // LostItemComment 삭제
+    @Operation(summary = "분실물 댓글 삭제", description = "분실물 댓글을 삭제합니다.")
+    @DeleteMapping("/lost/comment/{commentId}")
+    public ResponseEntity<String> deleteLostItemComment(
+            @Parameter(description = "댓글 ID") @PathVariable Long commentId) {
+        itemService.deleteLostItemComment(commentId);
+        return ResponseEntity.ok("Lost item comment deleted successfully.");
+    }
+
+    // FoundItemComment 등록
+    @Operation(summary = "습득물 댓글 등록", description = "습득물에 댓글을 등록합니다.")
+    @PostMapping("/found/comment")
+    public ResponseEntity<FoundItemCommentResponse> registerFoundItemComment(
+            @Parameter(description = "습득물 댓글 정보") @RequestBody FoundItemCommentRequest request) {
+        FoundItemCommentResponse response = itemService.registerFoundItemComment(request);
+        return ResponseEntity.ok(response);
+    }
+
+    // FoundItemComment 수정
+    @Operation(summary = "습득물 댓글 수정", description = "습득물 댓글을 수정합니다.")
+    @PutMapping("/found/comment/{commentId}")
+    public ResponseEntity<FoundItemCommentResponse> updateFoundItemComment(
+            @Parameter(description = "댓글 ID") @PathVariable Long commentId,
+            @Parameter(description = "수정할 댓글 정보") @RequestBody FoundItemCommentRequest request) {
+        FoundItemCommentResponse response = itemService.updateFoundItemComment(commentId, request);
+        return ResponseEntity.ok(response);
+    }
+
+    // FoundItemComment 삭제
+    @Operation(summary = "습득물 댓글 삭제", description = "습득물 댓글을 삭제합니다.")
+    @DeleteMapping("/found/comment/{commentId}")
+    public ResponseEntity<String> deleteFoundItemComment(
+            @Parameter(description = "댓글 ID") @PathVariable Long commentId) {
+        itemService.deleteFoundItemComment(commentId);
+        return ResponseEntity.ok("Found item comment deleted successfully.");
     }
 }
