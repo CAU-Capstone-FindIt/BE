@@ -15,7 +15,7 @@ public class FoundItemComment extends BaseTimeEntity{
 
     @Id
     @GeneratedValue(strategy = IDENTITY)
-    @Column(name = "comment_id")
+    @Column(name = "found_item_comment_id")
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
