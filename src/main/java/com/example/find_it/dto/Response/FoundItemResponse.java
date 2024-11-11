@@ -6,6 +6,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -27,4 +28,6 @@ public class FoundItemResponse {
     // 생성 및 수정 시간
     private LocalDateTime createdDate;    // 생성 시간
     private LocalDateTime modifiedDate;   // 수정 시간
+
+    private List<FoundItemCommentResponse> comments;
 }

@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -24,5 +25,6 @@ public class LostItemResponse {
     private LostItemStatus status;    // 분실물 상태 (예: 'Lost', 'Found')
     private LocalDateTime createdDate;    // 생성일
     private LocalDateTime modifiedDate;   // 수정일
+    private List<LostItemCommentResponse> comments; // 댓글 목록 추가
 }
 

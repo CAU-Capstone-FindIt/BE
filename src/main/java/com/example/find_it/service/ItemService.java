@@ -1,9 +1,13 @@
 package com.example.find_it.service;
 
 import com.example.find_it.domain.*;
+import com.example.find_it.dto.Request.FoundItemCommentRequest;
 import com.example.find_it.dto.Request.FoundItemRequest;
+import com.example.find_it.dto.Request.LostItemCommentRequest;
 import com.example.find_it.dto.Request.LostItemRequest;
+import com.example.find_it.dto.Response.FoundItemCommentResponse;
 import com.example.find_it.dto.Response.FoundItemResponse;
+import com.example.find_it.dto.Response.LostItemCommentResponse;
 import com.example.find_it.dto.Response.LostItemResponse;
 import com.example.find_it.repository.*;
 import jakarta.transaction.Transactional;
@@ -12,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -23,6 +28,8 @@ public class ItemService {
     private final LocationRepository locationRepository;
     private final UserRepository userRepository;
     private final RewardRepository rewardRepository;
+    private final FoundItemCommentRepository foundItemCommentRepository;
+    private final LostItemCommentRepository lostItemCommentRepository;
 
     @Transactional
     public void registerLostItem(LostItemRequest lostItemDTO) {
@@ -115,6 +122,86 @@ public class ItemService {
         return lostItemRepository.findAll();
     }
 
+    // 댓글 등록
+    @Transactional
+    public FoundItemCommentResponse registerFoundItemComment(FoundItemCommentRequest request) {
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        FoundItem foundItem = foundItemRepository.findById(request.getFoundItemId())
+                .orElseThrow(() -> new IllegalArgumentException("Found item not found"));
+
+        FoundItemComment comment = new FoundItemComment();
+        comment.setUser(user);
+        comment.setFoundItem(foundItem);
+        comment.setContent(request.getContent());
+
+        FoundItemComment savedComment = foundItemCommentRepository.save(comment);
+
+        return toFoundItemCommentResponse(savedComment);
+    }
+
+    // 댓글 수정
+    @Transactional
+    public FoundItemCommentResponse updateFoundItemComment(Long commentId, FoundItemCommentRequest request) {
+        FoundItemComment comment = foundItemCommentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        comment.setContent(request.getContent());
+        FoundItemComment updatedComment = foundItemCommentRepository.save(comment);
+
+        return toFoundItemCommentResponse(updatedComment);
+    }
+
+    // 댓글 삭제
+    @Transactional
+    public void deleteFoundItemComment(Long commentId) {
+        FoundItemComment comment = foundItemCommentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        foundItemCommentRepository.delete(comment);
+    }
+
+    // LostItem 댓글 등록
+    @Transactional
+    public LostItemCommentResponse registerLostItemComment(LostItemCommentRequest request) {
+        User user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        LostItem lostItem = lostItemRepository.findById(request.getLostItemId())
+                .orElseThrow(() -> new IllegalArgumentException("Lost item not found"));
+
+        LostItemComment comment = new LostItemComment();
+        comment.setUser(user);
+        comment.setLostItem(lostItem);
+        comment.setContent(request.getContent());
+
+        LostItemComment savedComment = lostItemCommentRepository.save(comment);
+
+        return toLostItemCommentResponse(savedComment);
+    }
+
+    // LostItem 댓글 수정
+    @Transactional
+    public LostItemCommentResponse updateLostItemComment(Long commentId, LostItemCommentRequest request) {
+        LostItemComment comment = lostItemCommentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        comment.setContent(request.getContent());
+        LostItemComment updatedComment = lostItemCommentRepository.save(comment);
+
+        return toLostItemCommentResponse(updatedComment);
+    }
+
+    // LostItem 댓글 삭제
+    @Transactional
+    public void deleteLostItemComment(Long commentId) {
+        LostItemComment comment = lostItemCommentRepository.findById(commentId)
+                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+
+        lostItemCommentRepository.delete(comment);
+    }
+
     public LostItemResponse toLostItemResponse(LostItem lostItem) {
         LostItemResponse response = new LostItemResponse();
         response.setId(lostItem.getId());
@@ -130,6 +217,12 @@ public class ItemService {
         response.setStatus(lostItem.getStatus());
         response.setCreatedDate(lostItem.getCreatedDate());
         response.setModifiedDate(lostItem.getModifiedDate());
+
+        List<LostItemCommentResponse> comments = lostItem.getComments().stream()
+                .map(this::toLostItemCommentResponse)
+                .collect(Collectors.toList());
+        response.setComments(comments);
+
         return response;
     }
 
@@ -147,6 +240,34 @@ public class ItemService {
         response.setBrand(foundItem.getBrand());
         response.setCreatedDate(foundItem.getCreatedDate());
         response.setModifiedDate(foundItem.getModifiedDate());
+
+        List<FoundItemCommentResponse> comments = foundItem.getComments().stream()
+                .map(this::toFoundItemCommentResponse)
+                .collect(Collectors.toList());
+        response.setComments(comments);
+
+        return response;
+    }
+
+    private FoundItemCommentResponse toFoundItemCommentResponse(FoundItemComment comment) {
+        FoundItemCommentResponse response = new FoundItemCommentResponse();
+        response.setId(comment.getId());
+        response.setUserId(comment.getUser().getId());
+        response.setFoundItemId(comment.getFoundItem().getId());
+        response.setContent(comment.getContent());
+        response.setCreatedDate(comment.getCreatedDate());
+        response.setModifiedDate(comment.getModifiedDate());
+        return response;
+    }
+
+    private LostItemCommentResponse toLostItemCommentResponse(LostItemComment comment) {
+        LostItemCommentResponse response = new LostItemCommentResponse();
+        response.setId(comment.getId());
+        response.setUserId(comment.getUser().getId());
+        response.setLostItemId(comment.getLostItem().getId());
+        response.setContent(comment.getContent());
+        response.setCreatedDate(comment.getCreatedDate());
+        response.setModifiedDate(comment.getModifiedDate());
         return response;
     }
 }
