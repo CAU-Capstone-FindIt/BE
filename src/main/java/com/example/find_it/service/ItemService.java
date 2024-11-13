@@ -176,8 +176,13 @@ public class ItemService {
         comment.setLostItem(lostItem);
         comment.setContent(request.getContent());
 
-        LostItemComment savedComment = lostItemCommentRepository.save(comment);
+        if (request.getParentCommentId() != null) {
+            LostItemComment parentComment = lostItemCommentRepository.findById(request.getParentCommentId())
+                    .orElseThrow(() -> new IllegalArgumentException("Parent comment not found"));
+            comment.setParentComment(parentComment);
+        }
 
+        LostItemComment savedComment = lostItemCommentRepository.save(comment);
         return toLostItemCommentResponse(savedComment);
     }
 
@@ -202,6 +207,18 @@ public class ItemService {
         lostItemCommentRepository.delete(comment);
     }
 
+    //LostItem 상세 조회
+    public LostItemResponse getLostItemDetails(Long lostItemId) {
+        // LostItem을 찾고, 없으면 예외 발생
+        LostItem lostItem = lostItemRepository.findById(lostItemId)
+                .orElseThrow(() -> new IllegalArgumentException("Lost item not found"));
+
+        // LostItemResponse로 변환하고, 댓글을 포함하여 반환
+        LostItemResponse response = toLostItemResponseWithComments(lostItem);
+        return response;
+    }
+
+
     public LostItemResponse toLostItemResponse(LostItem lostItem) {
         LostItemResponse response = new LostItemResponse();
         response.setId(lostItem.getId());
@@ -225,6 +242,46 @@ public class ItemService {
 
         return response;
     }
+
+    private LostItemResponse toLostItemResponseWithComments(LostItem lostItem) {
+        LostItemResponse response = new LostItemResponse();
+        response.setId(lostItem.getId());
+        response.setUserId(lostItem.getUser().getId());
+        response.setName(lostItem.getName());
+        response.setCategory(lostItem.getCategory());
+        response.setColor(lostItem.getColor());
+        response.setBrand(lostItem.getBrand());
+        response.setDescription(lostItem.getDescription());
+        response.setLostDate(lostItem.getLostDate());
+        response.setAddress(lostItem.getLocation().getAddress());
+        response.setRewardId(lostItem.getReward() != null ? lostItem.getReward().getId() : null);
+        response.setStatus(lostItem.getStatus());
+        response.setCreatedDate(lostItem.getCreatedDate());
+        response.setModifiedDate(lostItem.getModifiedDate());
+
+        // 최상위 댓글 목록을 가져오고, 각각에 대한 대댓글을 포함하여 설정
+        List<LostItemCommentResponse> comments = lostItem.getComments().stream()
+                .filter(comment -> comment.getParentComment() == null)  // 최상위 댓글만 필터링
+                .map(this::toLostItemCommentResponseWithChildren)
+                .collect(Collectors.toList());
+        response.setComments(comments);
+
+        return response;
+    }
+
+    private LostItemCommentResponse toLostItemCommentResponseWithChildren(LostItemComment comment) {
+        LostItemCommentResponse response = toLostItemCommentResponse(comment);
+
+        // 자식 댓글을 계층적으로 포함
+        List<LostItemCommentResponse> childResponses = comment.getChildComments().stream()
+                .map(this::toLostItemCommentResponseWithChildren)  // 재귀적으로 자식 댓글 처리
+                .collect(Collectors.toList());
+        response.setChildComments(childResponses);
+
+        return response;
+    }
+
+
 
     // FoundItemResponse로 변환하는 메서드 추가
     public FoundItemResponse toFoundItemResponse(FoundItem foundItem) {
