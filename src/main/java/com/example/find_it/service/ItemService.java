@@ -136,10 +136,17 @@ public class ItemService {
         comment.setFoundItem(foundItem);
         comment.setContent(request.getContent());
 
-        FoundItemComment savedComment = foundItemCommentRepository.save(comment);
+        // 부모 댓글이 있을 경우 설정
+        if (request.getParentCommentId() != null && request.getParentCommentId() != 0) {
+            FoundItemComment parentComment = foundItemCommentRepository.findById(request.getParentCommentId())
+                    .orElseThrow(() -> new IllegalArgumentException("Parent comment not found"));
+            comment.setParentComment(parentComment);
+        }
 
-        return toFoundItemCommentResponse(savedComment);
+        FoundItemComment savedComment = foundItemCommentRepository.save(comment);
+        return toFoundItemCommentResponseWithChildren(savedComment);
     }
+
 
     // 댓글 수정
     @Transactional
@@ -281,6 +288,19 @@ public class ItemService {
         return response;
     }
 
+    private FoundItemCommentResponse toFoundItemCommentResponseWithChildren(FoundItemComment comment) {
+        FoundItemCommentResponse response = toFoundItemCommentResponse(comment);
+
+        // 자식 댓글을 계층적으로 포함
+        List<FoundItemCommentResponse> childResponses = comment.getChildComments().stream()
+                .map(this::toFoundItemCommentResponseWithChildren)  // 재귀적으로 자식 댓글 처리
+                .collect(Collectors.toList());
+        response.setChildComments(childResponses);
+
+        return response;
+    }
+
+
 
 
     // FoundItemResponse로 변환하는 메서드 추가
@@ -305,6 +325,31 @@ public class ItemService {
 
         return response;
     }
+
+    private FoundItemResponse toFoundItemResponseWithComments(FoundItem foundItem) {
+        FoundItemResponse response = new FoundItemResponse();
+        response.setId(foundItem.getId());
+        response.setUserId(foundItem.getUser().getId());
+        response.setDescription(foundItem.getDescription());
+        response.setFoundDate(foundItem.getFoundDate());
+        response.setAddress(foundItem.getLocation().getAddress());
+        response.setPhoto(foundItem.getPhoto());
+        response.setCategory(foundItem.getCategory());
+        response.setColor(foundItem.getColor());
+        response.setBrand(foundItem.getBrand());
+        response.setCreatedDate(foundItem.getCreatedDate());
+        response.setModifiedDate(foundItem.getModifiedDate());
+
+        // 최상위 댓글 목록을 가져오고, 각각에 대한 대댓글을 포함하여 설정
+        List<FoundItemCommentResponse> comments = foundItem.getComments().stream()
+                .filter(comment -> comment.getParentComment() == null)  // 최상위 댓글만 필터링
+                .map(this::toFoundItemCommentResponseWithChildren)
+                .collect(Collectors.toList());
+        response.setComments(comments);
+
+        return response;
+    }
+
 
     private FoundItemCommentResponse toFoundItemCommentResponse(FoundItemComment comment) {
         FoundItemCommentResponse response = new FoundItemCommentResponse();
