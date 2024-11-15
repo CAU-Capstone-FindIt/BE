@@ -280,13 +280,16 @@ public class ItemService {
         LostItemCommentResponse response = toLostItemCommentResponse(comment);
 
         // 자식 댓글을 계층적으로 포함
-        List<LostItemCommentResponse> childResponses = comment.getChildComments().stream()
+        List<LostItemCommentResponse> childResponses = comment.getChildComments() != null
+                ? comment.getChildComments().stream()
                 .map(this::toLostItemCommentResponseWithChildren)  // 재귀적으로 자식 댓글 처리
-                .collect(Collectors.toList());
+                .collect(Collectors.toList())
+                : List.of();  // 자식 댓글이 없을 때 빈 리스트 설정
         response.setChildComments(childResponses);
 
         return response;
     }
+
 
     private FoundItemCommentResponse toFoundItemCommentResponseWithChildren(FoundItemComment comment) {
         FoundItemCommentResponse response = toFoundItemCommentResponse(comment);
