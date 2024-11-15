@@ -292,9 +292,11 @@ public class ItemService {
         FoundItemCommentResponse response = toFoundItemCommentResponse(comment);
 
         // 자식 댓글을 계층적으로 포함
-        List<FoundItemCommentResponse> childResponses = comment.getChildComments().stream()
+        List<FoundItemCommentResponse> childResponses = comment.getChildComments() != null
+                ? comment.getChildComments().stream()
                 .map(this::toFoundItemCommentResponseWithChildren)  // 재귀적으로 자식 댓글 처리
-                .collect(Collectors.toList());
+                .collect(Collectors.toList())
+                : List.of();  // 자식 댓글이 없을 때 빈 리스트 설정
         response.setChildComments(childResponses);
 
         return response;
@@ -326,7 +328,7 @@ public class ItemService {
         return response;
     }
 
-    private FoundItemResponse toFoundItemResponseWithComments(FoundItem foundItem) {
+    public FoundItemResponse toFoundItemResponseWithComments(FoundItem foundItem) {
         FoundItemResponse response = new FoundItemResponse();
         response.setId(foundItem.getId());
         response.setUserId(foundItem.getUser().getId());
@@ -349,6 +351,7 @@ public class ItemService {
 
         return response;
     }
+
 
 
     private FoundItemCommentResponse toFoundItemCommentResponse(FoundItemComment comment) {
