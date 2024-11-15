@@ -144,4 +144,13 @@ public class ItemController {
         LostItemResponse response = itemService.getLostItemDetails(lostItemId);
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "습득물 상세 조회", description = "특정 습득물의 상세 정보를 댓글과 함께 조회합니다.")
+    @GetMapping("/found/{foundItemId}")
+    public ResponseEntity<FoundItemResponse> getFoundItemDetails(
+            @Parameter(description = "습득물 ID") @PathVariable Long foundItemId) {
+        FoundItemResponse response = itemService.getFoundItemDetails(foundItemId);
+        return ResponseEntity.ok(response);
+    }
+
 }

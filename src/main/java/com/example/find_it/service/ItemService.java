@@ -225,6 +225,18 @@ public class ItemService {
         return response;
     }
 
+    // FoundItem 상세 조회
+    public FoundItemResponse getFoundItemDetails(Long foundItemId) {
+        // FoundItem을 찾고, 없으면 예외 발생
+        FoundItem foundItem = foundItemRepository.findById(foundItemId)
+                .orElseThrow(() -> new IllegalArgumentException("Found item not found"));
+
+        // FoundItemResponse로 변환하고, 댓글을 포함하여 반환
+        FoundItemResponse response = toFoundItemResponseWithComments(foundItem);
+        return response;
+    }
+
+
 
     public LostItemResponse toLostItemResponse(LostItem lostItem) {
         LostItemResponse response = new LostItemResponse();
@@ -278,32 +290,29 @@ public class ItemService {
 
     private LostItemCommentResponse toLostItemCommentResponseWithChildren(LostItemComment comment) {
         LostItemCommentResponse response = toLostItemCommentResponse(comment);
-        // 자식 댓글을 계층적으로 포함
-        List<LostItemCommentResponse> childResponses = comment.getChildComments().stream()
-                .map(this::toLostItemCommentResponseWithChildren)  // 재귀적으로 자식 댓글 처리
-                .collect(Collectors.toList());
-        response.setChildComments(childResponses);
-        return response;
-    }
 
-
-
-    private FoundItemCommentResponse toFoundItemCommentResponseWithChildren(FoundItemComment comment) {
-        FoundItemCommentResponse response = toFoundItemCommentResponse(comment);
-
-        // 자식 댓글을 계층적으로 포함
-        List<FoundItemCommentResponse> childResponses = comment.getChildComments() != null
+        // 자식 댓글이 있는 경우 가져오기
+        List<LostItemCommentResponse> childResponses = comment.getChildComments() != null
                 ? comment.getChildComments().stream()
-                .map(this::toFoundItemCommentResponseWithChildren)  // 재귀적으로 자식 댓글 처리
+                .map(this::toLostItemCommentResponseWithChildren)
                 .collect(Collectors.toList())
-                : List.of();  // 자식 댓글이 없을 때 빈 리스트 설정
-        response.setChildComments(childResponses);
+                : List.of();
 
+        response.setChildComments(childResponses);
         return response;
     }
 
 
-
+    private LostItemCommentResponse toLostItemCommentResponse(LostItemComment comment) {
+        LostItemCommentResponse response = new LostItemCommentResponse();
+        response.setId(comment.getId());
+        response.setUserId(comment.getUser().getId());
+        response.setLostItemId(comment.getLostItem().getId());
+        response.setContent(comment.getContent());
+        response.setCreatedDate(comment.getCreatedDate());
+        response.setModifiedDate(comment.getModifiedDate());
+        return response;
+    }
 
     // FoundItemResponse로 변환하는 메서드 추가
     public FoundItemResponse toFoundItemResponse(FoundItem foundItem) {
@@ -354,22 +363,26 @@ public class ItemService {
 
 
 
+    private FoundItemCommentResponse toFoundItemCommentResponseWithChildren(FoundItemComment comment) {
+        FoundItemCommentResponse response = toFoundItemCommentResponse(comment);
+
+        // 자식 댓글을 가져오기
+        List<FoundItemCommentResponse> childResponses = comment.getChildComments() != null
+                ? comment.getChildComments().stream()
+                .map(this::toFoundItemCommentResponseWithChildren)  // 재귀적으로 자식 댓글 처리
+                .collect(Collectors.toList())
+                : List.of();  // 자식 댓글이 없을 때 빈 리스트 설정
+
+        response.setChildComments(childResponses);
+        return response;
+    }
+
+
     private FoundItemCommentResponse toFoundItemCommentResponse(FoundItemComment comment) {
         FoundItemCommentResponse response = new FoundItemCommentResponse();
         response.setId(comment.getId());
         response.setUserId(comment.getUser().getId());
         response.setFoundItemId(comment.getFoundItem().getId());
-        response.setContent(comment.getContent());
-        response.setCreatedDate(comment.getCreatedDate());
-        response.setModifiedDate(comment.getModifiedDate());
-        return response;
-    }
-
-    private LostItemCommentResponse toLostItemCommentResponse(LostItemComment comment) {
-        LostItemCommentResponse response = new LostItemCommentResponse();
-        response.setId(comment.getId());
-        response.setUserId(comment.getUser().getId());
-        response.setLostItemId(comment.getLostItem().getId());
         response.setContent(comment.getContent());
         response.setCreatedDate(comment.getCreatedDate());
         response.setModifiedDate(comment.getModifiedDate());
