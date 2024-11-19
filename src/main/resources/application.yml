@@ -42,3 +42,8 @@ openai:
     url: "https://api.openai.com/v1/chat/completions"
     key: ${OPENAI_API_KEY}
 
+kafka:
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+  consumer:
+    group-id: ${KAFKA_CONSUMER_GROUP_ID:default-group} # 기본값 제공
+
