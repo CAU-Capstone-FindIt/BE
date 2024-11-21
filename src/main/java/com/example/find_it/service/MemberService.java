@@ -2,6 +2,7 @@ package com.example.find_it.service;
 
 import com.example.find_it.domain.Member;
 import com.example.find_it.dto.Request.KakaoLoginRequest;
+import com.example.find_it.dto.Request.MemberUpdateRequest;
 import com.example.find_it.dto.Response.TokenResponse;
 import com.example.find_it.exception.CustomException;
 import com.example.find_it.exception.ErrorCode;
@@ -84,5 +85,26 @@ public class MemberService {
                 .grantType("Bearer")
                 .accessToken(accessToken)
                 .build();
+    }
+
+    public Member updateMyMember(Member member, MemberUpdateRequest request) throws CustomException {
+        if (request.getName() != null) {
+            member.setName(request.getName());
+        }
+        if (request.getProfileImage() != null) {
+            member.setProfileImage(request.getProfileImage());
+        }
+        memberRepository.save(member);
+        return member;
+    }
+
+    public Member getMemberByPrincipal(UserDetails userDetails) {
+        return memberRepository.findByKakaoId(userDetails.getUsername())
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
+    }
+
+    public Member getMemberById(Long memberId) throws CustomException {
+        return memberRepository.findById(memberId)
+                .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
 }

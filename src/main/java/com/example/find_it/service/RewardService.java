@@ -2,9 +2,9 @@ package com.example.find_it.service;
 
 import com.example.find_it.domain.*;
 import com.example.find_it.dto.RewardDTO;
+import com.example.find_it.repository.MemberRepository;
 import com.example.find_it.repository.PointTransactionRepository;
 import com.example.find_it.repository.RewardRepository;
-import com.example.find_it.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +15,7 @@ public class RewardService {
 
     private final RewardRepository rewardRepository;
     private final PointTransactionRepository pointTransactionRepository;
-    private final UserRepository userRepository;
+    private final MemberRepository userRepository;
 
     // 보상 설정
     public void setReward(RewardDTO rewardDTO, Long lostUserId) {

@@ -1,7 +1,7 @@
 package com.example.find_it.service;
 
 import com.example.find_it.domain.Member;
-import com.example.find_it.repository.UserRepository;
+import com.example.find_it.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
-    private final UserRepository memberRepository;
+    private final MemberRepository memberRepository;
 
     @Override
     public UserDetails loadUserByUsername(String kakaoId) throws UsernameNotFoundException {

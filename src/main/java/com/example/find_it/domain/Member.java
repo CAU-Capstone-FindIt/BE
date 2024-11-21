@@ -1,14 +1,14 @@
 package com.example.find_it.domain;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
-@Getter
 @Entity
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Member {
 
     @Id

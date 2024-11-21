@@ -1,77 +1,58 @@
 // UserController.java
 package com.example.find_it.controller;
 
+import com.example.find_it.domain.Member;
+import com.example.find_it.dto.Request.KakaoLoginRequest;
+import com.example.find_it.dto.Request.MemberUpdateRequest;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
-import com.example.find_it.service.KakaoService;
+import com.example.find_it.dto.Response.MemberResponse;
+import com.example.find_it.dto.Response.TokenResponse;
+import com.example.find_it.service.MemberService;
 import io.jsonwebtoken.security.Keys;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
-
 @Slf4j
-@RestController
-@RequiredArgsConstructor
 @RequestMapping("/api/users")
+@RestController
+@Tag(name = "유저 관리", description = "유저 정보 및 캐릭터 관리 API")
+@PreAuthorize("isAuthenticated()")
+@RequiredArgsConstructor
 public class UserController {
 
-    private final KakaoService kakaoService;
+    private final MemberService memberService;
 
-    @Value("${jwt.secret}")
-    private String jwtSecret;
-
-    // jwtSecret을 이용해 JWT 서명 키를 생성하는 메서드
-    private Key getSigningKey() {
-        log.info("Using jwtSecret for signing key: {}", jwtSecret); // jwtSecret 로그 확인
-        return Keys.hmacShaKeyFor(jwtSecret.getBytes(StandardCharsets.UTF_8));
+    @Operation(summary = "유저 정보 조회", description = "자신의 유저 정보를 조회합니다.")
+    @GetMapping("/me")
+    public ResponseEntity<MemberResponse> getUserInfo(@AuthenticationPrincipal UserDetails userDetails) {
+        Member myMember = memberService.getMemberByPrincipal(userDetails);
+        MemberResponse response = MemberResponse.getMemberResponse(myMember);
+        return ResponseEntity.ok(response);
     }
 
-    @PostMapping("/login/callback")
-    public ResponseEntity<JwtTokenDto> kakaoLogin(@RequestBody LoginRequest loginRequest) {
-        String code = loginRequest.getCode(); // 프론트에서 받은 인가 코드
-        String accessToken = kakaoService.getAccessTokenFromKakao(code); // 카카오 액세스 토큰 가져오기
-        KakaoUserInfoResponseDto userInfo = kakaoService.getUserInfo(accessToken); // 사용자 정보 가져오기
-        JwtTokenDto jwtToken = kakaoService.registerOrLoginWithKakao(userInfo); // 사용자 등록 및 JWT 발급
-
-        // JwtTokenDto를 JSON 형식으로 반환
-        return ResponseEntity.ok(jwtToken);
+    @Operation(summary = "카카오 로그인", description = "카카오 로그인을 통해 JWT를 발급합니다.")
+    @PostMapping("/login")
+    @PreAuthorize("permitAll()")
+    public ResponseEntity<TokenResponse> kakaoLogin(@Valid @RequestBody KakaoLoginRequest request) {
+        Member member = memberService.kakaoLogin(request);
+        TokenResponse response = memberService.generateToken(member);
+        return ResponseEntity.ok().body(response);
     }
 
-//    @PostMapping("/logout")
-//    public ResponseEntity<String> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
-//        log.info("Received Authorization header: {}", authHeader); // 토큰 로그 확인
-//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("JWT 토큰이 필요합니다.");
-//        }
-//
-//        String token = authHeader.substring(7);
-//        try {
-//            log.info("Attempting to parse token: {}", token); // 파싱할 JWT 토큰 로그 확인
-//            Claims claims = Jwts.parserBuilder()
-//                    .setSigningKey(getSigningKey())
-//                    .build()
-//                    .parseClaimsJws(token)
-//                    .getBody();
-//
-//            log.info("Parsed claims: {}", claims); // 파싱된 claims 로그 확인
-//            return ResponseEntity.ok("로그아웃 성공");
-//        } catch (Exception e) {
-//            log.error("JWT 검증 오류:", e); // 에러 로그 추가
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("유효하지 않은 JWT 토큰입니다.");
-//        }
-//    }
-
-    @PostMapping("/logout")
-    public ResponseEntity<String> logout(@RequestHeader(HttpHeaders.AUTHORIZATION) String authHeader) {
-        log.info("Received Authorization header: {}", authHeader); // 토큰 로그 확인
-
-        // JWT 검증 없이 로그아웃 처리
-        log.info("JWT 검증 없이 로그아웃 성공 처리");
-        return ResponseEntity.ok("로그아웃 성공");
+    @Operation(summary = "유저 정보 수정", description = "자신의 유저 정보를 수정합니다.")
+    @PatchMapping("/me")
+    public ResponseEntity<MemberResponse> updateUserInfo(MemberUpdateRequest request, @AuthenticationPrincipal UserDetails userDetails) {
+        Member myMember = memberService.getMemberByPrincipal(userDetails);
+        Member updatedMember = memberService.updateMyMember(myMember, request);
+        MemberResponse response = MemberResponse.getMemberResponse(updatedMember);
+        return ResponseEntity.ok(response);
     }
 }
