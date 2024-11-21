@@ -23,7 +23,7 @@ public class FoundItemComment extends BaseTimeEntity{
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
-    private User user;
+    private Member user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "found_item_id")  // FoundItem과의 연관 관계

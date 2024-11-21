@@ -1,8 +1,6 @@
 package com.example.find_it.service;
 
-import com.example.find_it.domain.User;
-import com.example.find_it.dto.JwtTokenDto;
-import com.example.find_it.dto.Response.KakaoTokenResponseDto;
+import com.example.find_it.domain.Member;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.repository.UserRepository;
 import io.jsonwebtoken.Jwts;
@@ -40,7 +38,7 @@ public class KakaoService {
     private final String KAUTH_TOKEN_URL_HOST = "https://kauth.kakao.com";
     private final String KAUTH_USER_URL_HOST = "https://kapi.kakao.com";
 
-    public JwtTokenDto generateJwtToken(User user) {
+    public JwtTokenDto generateJwtToken(Member user) {
         String token = Jwts.builder()
                 .setSubject(user.getAuthId())
                 .setIssuedAt(new Date())
@@ -94,7 +92,7 @@ public class KakaoService {
             throw new IllegalStateException("Failed to retrieve user info from Kakao");
         }
 
-        log.info("[KakaoService] Kakao User ID: {}", userInfo.getId());
+        log.info("[KakaoService] Kakao Member ID: {}", userInfo.getId());
         return userInfo;
     }
 
@@ -103,11 +101,11 @@ public class KakaoService {
         String authId = "KAKAO_" + userInfo.getId();
         log.info("Attempting to find or create user with authId: {}", authId);
 
-        User user = userRepository.findByAuthId(authId)
+        Member user = userRepository.findByAuthId(authId)
                 .orElseGet(() -> {
                     log.info("Creating new user with authId: {}", authId);
                     return userRepository.save(
-                            User.createKakaoUser(
+                            Member.createKakaoUser(
                                     authId,
                                     userInfo.getKakaoAccount().getProfile().getNickName(),
                                     userInfo.getKakaoAccount().getProfile().getProfileImageUrl()

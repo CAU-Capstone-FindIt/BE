@@ -20,7 +20,7 @@ public class FoundItem extends BaseTimeEntity {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
-    private User user;
+    private Member user;
 
     private String description;
     private LocalDate foundDate;

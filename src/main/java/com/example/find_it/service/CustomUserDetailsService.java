@@ -1,7 +1,7 @@
 package com.example.find_it.service;
 
-import likelion.holymoly.entity.Member;
-import likelion.holymoly.repository.MemberRepository;
+import com.example.find_it.domain.Member;
+import com.example.find_it.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 @Service
 @RequiredArgsConstructor
 public class CustomUserDetailsService implements UserDetailsService {
-    private final MemberRepository memberRepository;
+    private final UserRepository memberRepository;
 
     @Override
     public UserDetails loadUserByUsername(String kakaoId) throws UsernameNotFoundException {

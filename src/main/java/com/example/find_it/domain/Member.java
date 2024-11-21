@@ -8,20 +8,19 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Entity
-@Table(name = "member")
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class User {
+public class Member {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "user_id")
+    @Column(name = "member_id")
     private Long id;
 
-    @Column(name = "username", nullable = false)
+    @Column(name = "member_name", nullable = false)
     private String name;
 
-    @Column(unique = true, nullable = false)
-    private String authId;  // 카카오 ID를 Auth ID로 사용
+    @Column(nullable = false, unique = true)
+    private String kakaoId;
 
     @Column(name = "profile_image")
     private String profileImage;
@@ -31,16 +30,16 @@ public class User {
 
     // Builder 패턴을 사용한 생성자
     @Builder
-    public User(String authId, String name, String profileImage, int points) {
-        this.authId = authId;
+    public Member(String kakaoId, String name, String profileImage, int points) {
+        this.kakaoId = kakaoId;
         this.name = name;
         this.profileImage = profileImage;
         this.points = points;
     }
 
-    public static User createKakaoUser(String authId, String name, String profileImage) {
-        return User.builder()
-                .authId(authId)
+    public static Member createKakaoUser(String kakaoId, String name, String profileImage) {
+        return Member.builder()
+                .kakaoId(kakaoId)
                 .name(name)
                 .profileImage(profileImage)
                 .points(0)   // 초기 포인트 설정

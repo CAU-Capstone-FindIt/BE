@@ -33,8 +33,8 @@ public class ItemService {
 
     @Transactional
     public void registerLostItem(LostItemRequest lostItemDTO) {
-        User user = userRepository.findById(lostItemDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Member user = userRepository.findById(lostItemDTO.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         // Check if user has enough points if reward is requested
         if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
@@ -75,8 +75,8 @@ public class ItemService {
     }
 
     public void reportFoundItem(FoundItemRequest foundItemDTO) {
-        User user = userRepository.findById(foundItemDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Member user = userRepository.findById(foundItemDTO.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         Location location = saveLocation(foundItemDTO.getLatitude(), foundItemDTO.getLongitude(), foundItemDTO.getAddress());
 
@@ -125,8 +125,8 @@ public class ItemService {
     // 댓글 등록
     @Transactional
     public FoundItemCommentResponse registerFoundItemComment(FoundItemCommentRequest request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Member user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         FoundItem foundItem = foundItemRepository.findById(request.getFoundItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Found item not found"));
@@ -172,8 +172,8 @@ public class ItemService {
     // LostItem 댓글 등록
     @Transactional
     public LostItemCommentResponse registerLostItemComment(LostItemCommentRequest request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Member user = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         LostItem lostItem = lostItemRepository.findById(request.getLostItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Lost item not found"));

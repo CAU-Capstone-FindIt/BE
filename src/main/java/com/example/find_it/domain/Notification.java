@@ -12,6 +12,6 @@ public class Notification {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id")  // `User` 엔티티와의 연관 관계 설정
-    private User user;
+    @JoinColumn(name = "user_id")  // `Member` 엔티티와의 연관 관계 설정
+    private Member user;
 }

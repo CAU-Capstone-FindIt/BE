@@ -19,8 +19,8 @@ public class RewardService {
 
     // 보상 설정
     public void setReward(RewardDTO rewardDTO, Long lostUserId) {
-        User lostUser = userRepository.findById(lostUserId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Member lostUser = userRepository.findById(lostUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         // 분실자가 보상 포인트를 설정할 수 있도록 만듭니다.
         if (lostUser.getPoints() < rewardDTO.getAmount()) {
@@ -52,7 +52,7 @@ public class RewardService {
         }
 
         // 보상 수령자 (습득자) 확인
-        User foundUser = userRepository.findById(foundUserId)
+        Member foundUser = userRepository.findById(foundUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Found user not found"));
 
         // 보상 상태를 'PAID'로 설정하여 지급 완료

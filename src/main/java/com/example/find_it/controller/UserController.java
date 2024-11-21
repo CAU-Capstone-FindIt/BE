@@ -1,8 +1,6 @@
 // UserController.java
 package com.example.find_it.controller;
 
-import com.example.find_it.dto.JwtTokenDto;
-import com.example.find_it.dto.Request.LoginRequest;
 import com.example.find_it.dto.Response.KakaoUserInfoResponseDto;
 import com.example.find_it.service.KakaoService;
 import io.jsonwebtoken.security.Keys;
