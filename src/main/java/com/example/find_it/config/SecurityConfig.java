@@ -1,83 +1,55 @@
-//package com.example.find_it.config;
-//
-//import com.example.find_it.service.CustomUserDetailsService;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.context.annotation.Bean;
-//import org.springframework.context.annotation.Configuration;
-//import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-//import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-//import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-//import org.springframework.security.web.SecurityFilterChain;
-//import org.springframework.web.cors.CorsConfiguration;
-//import org.springframework.web.cors.CorsConfigurationSource;
-//import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-//
-//import java.util.Arrays;
-//import java.util.Collections;
-//
-//@Configuration
-//@EnableWebSecurity
-//@RequiredArgsConstructor
-//public class SecurityConfig {
-//
-//    private final CustomUserDetailsService customUserDetailsService;
-//
-//    @Bean
-//    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-//        http
-//                .cors(cors -> cors.configurationSource(request -> {
-//                    CorsConfiguration configuration = new CorsConfiguration();
-//                    configuration.setAllowedOrigins(Arrays.asList("*"));
-//                    configuration.setAllowedMethods(Arrays.asList("*"));
-//                    configuration.setAllowedHeaders(Arrays.asList("*"));
-//                    return configuration;
-//                }))
-//                .csrf(csrf -> csrf.disable())
-//                .authorizeRequests(auth -> auth
-//                        .requestMatchers(
-//                                "/api/users/kakao/login",
-//                                "/api/users/login/callback",
-//                                "/error"  // error 엔드포인트도 허용
-//                        ).permitAll()
-//                        .anyRequest().authenticated()
-//                )
-//                .formLogin(formLogin -> formLogin
-//                        .loginPage("/api/users/kakao/login")
-//                        .permitAll()
-//                )
-//                .logout(logout -> logout
-//                        .logoutUrl("/api/users/logout")
-//                        .logoutSuccessUrl("/api/users/kakao/login")
-//                        .permitAll()
-//                )
-//                .userDetailsService(customUserDetailsService);
-//
-//        return http.build();
-//    }
-//
-////    @Bean
-////    public CorsConfigurationSource corsConfigurationSource() {
-////
-////        CorsConfiguration configuration = new CorsConfiguration();
-////
-//////        // 모든 HTTP 메서드 명시적으로 설정
-//////        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-////
-////        configuration.setAllowedMethods(Collections.singletonList("*"));
-//////        // 허용할 오리진 설정
-//////        configuration.setAllowedOrigins(Arrays.asList(
-//////                "http://localhost:3000",
-//////                "http://findit.p-e.kr:8080",
-//////                "http://finditforcau.s3-website.ap-northeast-2.amazonaws.com"
-//////        ));
-////        configuration.setAllowedOriginPatterns(Collections.singletonList("http://localhost:3000"));
-////
-////        configuration.setAllowedHeaders(Collections.singletonList("*"));
-////        configuration.setAllowCredentials(true);
-////        configuration.setMaxAge(3600L);
-////
-//////        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-//////        source.registerCorsConfiguration("/**", configuration);
-////        return configuration;
-////    }
-//}
+package com.example.find_it.config;
+
+import lombok.AllArgsConstructor;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
+import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+import org.springframework.web.filter.CorsFilter;
+
+import static org.springframework.security.config.Customizer.withDefaults;
+
+@Configuration
+@EnableWebSecurity
+@AllArgsConstructor
+@EnableMethodSecurity()
+public class SecurityConfig {
+    private final JwtTokenFilter jwtTokenFilter;
+
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+                .cors(withDefaults())
+                .csrf(AbstractHttpConfigurer::disable)
+                .authorizeHttpRequests(auth -> auth
+                        .anyRequest().permitAll())
+                .headers(headers -> headers
+                        .frameOptions(HeadersConfigurer.FrameOptionsConfig::disable))
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtTokenFilter, UsernamePasswordAuthenticationFilter.class);
+
+        return http.build();
+    }
+
+    @Bean
+    public CorsFilter corsFilter() {
+        // 개발 테스트용 사양
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowCredentials(false);
+        config.addAllowedOriginPattern("*");
+        config.addAllowedHeader("*");
+        config.addAllowedMethod("*");
+        source.registerCorsConfiguration("/**", config);
+        return new CorsFilter(source);
+    }
+}
+
