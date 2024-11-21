@@ -3,11 +3,15 @@ package com.example.find_it.controller;
 import com.example.find_it.dto.PersonalMessage;
 import com.example.find_it.service.KafkaConsumerService;
 import com.example.find_it.service.KafkaProducerService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.Parameter;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@Tag(name = "Message API", description = "Kafka를 활용한 개인 메시지 송수신 API")
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
@@ -20,45 +24,32 @@ public class MessageController {
         this.kafkaConsumerService = kafkaConsumerService;
     }
 
-    /**
-     * 개인 쪽지 전송
-     *
-     * @param senderId  메시지 보낸 사람 ID
-     * @param receiverId 메시지 받는 사람 ID
-     * @param message   메시지 내용
-     * @return 전송 상태
-     */
+    @Operation(
+            summary = "개인 메시지 전송",
+            description = "지정된 수신자 ID로 개인 메시지를 전송합니다."
+    )
     @PostMapping("/send")
     public ResponseEntity<String> sendMessage(
-            @RequestParam Long senderId,
-            @RequestParam Long receiverId,
-            @RequestBody String message) {
-
-        // 사용자 ID 기반의 토픽 생성
+            @Parameter(description = "메시지를 보낸 사용자 ID", required = true) @RequestParam Long senderId,
+            @Parameter(description = "메시지를 받는 사용자 ID", required = true) @RequestParam Long receiverId,
+            @Parameter(description = "메시지 내용", required = true) @RequestBody String message
+    ) {
         String topic = "private-message-" + receiverId;
-
-        // Kafka에 메시지 전송
         kafkaProducerService.sendMessage(topic, new PersonalMessage(senderId, receiverId, message));
         return ResponseEntity.ok("Message sent successfully.");
     }
 
-    /**
-     * 개인 쪽지 수신
-     *
-     * @param receiverId 메시지 받는 사람 ID
-     * @param senderId   메시지 보낸 사람 ID (선택 사항)
-     * @return 수신된 메시지 목록
-     */
+    @Operation(
+            summary = "개인 메시지 수신",
+            description = "지정된 수신자 ID에 도착한 메시지 목록을 반환합니다. 보낸 사람 ID를 선택적으로 필터링할 수 있습니다."
+    )
     @GetMapping("/receive")
     public ResponseEntity<List<PersonalMessage>> receiveMessages(
-            @RequestParam Long receiverId,
-            @RequestParam(required = false) Long senderId) {
-        // 사용자 ID 기반의 토픽 생성
+            @Parameter(description = "메시지를 받는 사용자 ID", required = true) @RequestParam Long receiverId,
+            @Parameter(description = "메시지를 보낸 사용자 ID (선택)", required = false) @RequestParam(required = false) Long senderId
+    ) {
         String topic = "private-message-" + receiverId;
-
-        // Kafka에서 메시지 가져오기
         List<PersonalMessage> messages = kafkaConsumerService.getMessages(topic, senderId);
         return ResponseEntity.ok(messages);
     }
-
 }
