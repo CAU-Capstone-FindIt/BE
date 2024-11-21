@@ -19,8 +19,8 @@ public class LostItem extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
-    private Member user;
+    @JoinColumn(name = "member_id")
+    private Member member;
 
     private String description;
     private String name;

@@ -18,8 +18,8 @@ public class PointTransaction {
     private Long id;
 
     @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private Member user;  // 포인트가 변동된 사용자
+    @JoinColumn(name = "member_id", nullable = false)
+    private Member member;  // 포인트가 변동된 사용자
 
     private int points;  // 변동된 포인트 수량 (양수 또는 음수)
 
@@ -29,8 +29,8 @@ public class PointTransaction {
 
     // Builder 패턴을 사용한 생성자
     @Builder
-    public PointTransaction(Member user, int points, LocalDateTime transactionDate, String description) {
-        this.user = user;
+    public PointTransaction(Member member, int points, LocalDateTime transactionDate, String description) {
+        this.member = member;
         this.points = points;
         this.transactionDate = (transactionDate != null) ? transactionDate : LocalDateTime.now();
         this.description = description;

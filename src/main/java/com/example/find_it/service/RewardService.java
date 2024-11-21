@@ -66,7 +66,7 @@ public class RewardService {
 
         PointTransaction transaction = PointTransaction.builder()
                 .points(reward.getAmount())
-                .user(foundUser)
+                .member(foundUser)
                 .description("보상 지급") // 거래 설명 추가 가능
                 .build();
 

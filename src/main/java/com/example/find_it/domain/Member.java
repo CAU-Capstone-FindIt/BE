@@ -7,8 +7,9 @@ import lombok.*;
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED)
 @AllArgsConstructor
+@Table(name = "member")
 public class Member {
 
     @Id
@@ -25,26 +26,8 @@ public class Member {
     @Column(name = "profile_image")
     private String profileImage;
 
-    @Column(name = "points", nullable = false)
+    @Column(name = "points")
     private int points = 0;
-
-    // Builder 패턴을 사용한 생성자
-    @Builder
-    public Member(String kakaoId, String name, String profileImage, int points) {
-        this.kakaoId = kakaoId;
-        this.name = name;
-        this.profileImage = profileImage;
-        this.points = points;
-    }
-
-    public static Member createKakaoUser(String kakaoId, String name, String profileImage) {
-        return Member.builder()
-                .kakaoId(kakaoId)
-                .name(name)
-                .profileImage(profileImage)
-                .points(0)   // 초기 포인트 설정
-                .build();
-    }
 
     // 포인트를 더하거나 차감하는 메서드
     public void adjustPoints(int deltaPoints) {
