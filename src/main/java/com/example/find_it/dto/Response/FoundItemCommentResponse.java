@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Getter
 @Setter
@@ -14,4 +15,6 @@ public class FoundItemCommentResponse {
     private String content;   // 댓글 내용
     private LocalDateTime createdDate;
     private LocalDateTime modifiedDate;
+
+    private List<FoundItemCommentResponse> childComments;
 }

@@ -136,4 +136,21 @@ public class ItemController {
         itemService.deleteFoundItemComment(commentId);
         return ResponseEntity.ok("Found item comment deleted successfully.");
     }
+
+    @Operation(summary = "분실물 상세 조회", description = "특정 분실물의 상세 정보를 댓글과 함께 조회합니다.")
+    @GetMapping("/lost/{lostItemId}")
+    public ResponseEntity<LostItemResponse> getLostItemDetails(
+            @Parameter(description = "분실물 ID") @PathVariable Long lostItemId) {
+        LostItemResponse response = itemService.getLostItemDetails(lostItemId);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "습득물 상세 조회", description = "특정 습득물의 상세 정보를 댓글과 함께 조회합니다.")
+    @GetMapping("/found/{foundItemId}")
+    public ResponseEntity<FoundItemResponse> getFoundItemDetails(
+            @Parameter(description = "습득물 ID") @PathVariable Long foundItemId) {
+        FoundItemResponse response = itemService.getFoundItemDetails(foundItemId);
+        return ResponseEntity.ok(response);
+    }
+
 }
