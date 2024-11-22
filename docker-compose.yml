@@ -32,12 +32,15 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: SECRET-KEY
       SPRING_DATASOURCE_URL: jdbc:mysql://capstone.cbweg6cmcjxe.ap-northeast-2.rds.amazonaws.com:3306/capstone
-      #      SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:13306/capstone
+      # SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:13306/capstone
       SPRING_JPA_HIBERNATE_DDL_AUTO: create
       FCM_CERTIFICATION: /app/config/firebaseworry.json
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
-      KAFKA_CONSUMER_GROUP_ID: my-custom-group  # Add the consumer group ID here
+      KAFKA_CONSUMER_GROUP_ID: my-custom-group
     volumes:
       - ./firebaseworry.json:/app/config/firebaseworry.json
+      - /home/ubuntu/logs:/logs # 컨테이너 내부 로그 경로를 호스트 로그 경로로 매핑
     depends_on:
       - kafka
+    command: >
+      sh -c "java -jar app.jar > /logs/spring-boot.log 2>&1"
