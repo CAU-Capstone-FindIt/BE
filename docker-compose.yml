@@ -39,8 +39,8 @@ services:
       KAFKA_CONSUMER_GROUP_ID: my-custom-group
     volumes:
       - ./firebaseworry.json:/app/config/firebaseworry.json
-      - /home/ubuntu/logs:/logs # 컨테이너 내부 로그 경로를 호스트 로그 경로로 매핑
+      - /home/ubuntu/logs:/logs
     depends_on:
       - kafka
     command: >
-      sh -c "java -jar app.jar > /logs/spring-boot.log 2>&1"
+      sh -c "mkdir -p /logs && java -jar app.jar > /logs/spring-boot.log 2>&1"
