@@ -14,10 +14,13 @@ spring:
       hibernate:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
-  logging.level:
-    org.hibernate.SQL: info
-    org.apache.kafka: warn  # Kafka 관련 로그를 WARN으로 설정
-    org.springframework.kafka: warn
+  logging:
+    file:
+      name: /logs/spring-boot.log
+    level:
+      org.hibernate.SQL: info
+      org.apache.kafka: warn  # Kafka 관련 로그를 WARN으로 설정
+      org.springframework.kafka: warn
 
 # 파일 업로드 설정
 spring.servlet.multipart:
