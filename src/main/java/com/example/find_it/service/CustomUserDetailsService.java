@@ -1,35 +1,24 @@
-//package com.example.find_it.service;
-//
-//import com.example.find_it.domain.User;
-//import com.example.find_it.repository.UserRepository;
-//import lombok.RequiredArgsConstructor;
-//import org.springframework.security.core.userdetails.UserDetails;
-//import org.springframework.security.core.userdetails.UserDetailsService;
-//import org.springframework.security.core.userdetails.UsernameNotFoundException;
-//import org.springframework.stereotype.Service;
-//
-//import java.util.Collections;
-//
-//@Service
-//@RequiredArgsConstructor
-//public class CustomUserDetailsService implements UserDetailsService {
-//
-//    private final UserRepository userRepository;
-//
-//    /**
-//     * authId를 사용해 사용자 정보를 불러오는 메서드
-//     *
-//     * @param authId 카카오 인증 ID
-//     * @return UserDetails - Spring Security 인증을 위한 객체
-//     * @throws UsernameNotFoundException authId에 해당하는 사용자가 없을 경우 예외 발생
-//     */
-//    @Override
-//    public UserDetails loadUserByUsername(String authId) throws UsernameNotFoundException {
-//        User user = userRepository.findByAuthId(authId)
-//                .orElseThrow(() -> new UsernameNotFoundException("User not found with authId: " + authId));
-//
-//        return new org.springframework.security.core.userdetails.User(
-//                user.getAuthId(), "", Collections.emptyList()
-//        );
-//    }
-//}
+package com.example.find_it.service;
+
+import com.example.find_it.domain.Member;
+import com.example.find_it.repository.MemberRepository;
+import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+
+@Service
+@RequiredArgsConstructor
+public class CustomUserDetailsService implements UserDetailsService {
+    private final MemberRepository memberRepository;
+
+    @Override
+    public UserDetails loadUserByUsername(String kakaoId) throws UsernameNotFoundException {
+        Member member = memberRepository.findByKakaoId(kakaoId).orElseThrow(() -> new UsernameNotFoundException(kakaoId));
+        return new User(member.getKakaoId(), "N/A", new ArrayList<>());
+    }
+}

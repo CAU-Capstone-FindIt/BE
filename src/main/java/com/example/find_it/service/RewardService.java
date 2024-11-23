@@ -2,9 +2,9 @@ package com.example.find_it.service;
 
 import com.example.find_it.domain.*;
 import com.example.find_it.dto.RewardDTO;
+import com.example.find_it.repository.MemberRepository;
 import com.example.find_it.repository.PointTransactionRepository;
 import com.example.find_it.repository.RewardRepository;
-import com.example.find_it.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,12 +15,12 @@ public class RewardService {
 
     private final RewardRepository rewardRepository;
     private final PointTransactionRepository pointTransactionRepository;
-    private final UserRepository userRepository;
+    private final MemberRepository userRepository;
 
     // 보상 설정
     public void setReward(RewardDTO rewardDTO, Long lostUserId) {
-        User lostUser = userRepository.findById(lostUserId)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Member lostUser = userRepository.findById(lostUserId)
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         // 분실자가 보상 포인트를 설정할 수 있도록 만듭니다.
         if (lostUser.getPoints() < rewardDTO.getAmount()) {
@@ -52,7 +52,7 @@ public class RewardService {
         }
 
         // 보상 수령자 (습득자) 확인
-        User foundUser = userRepository.findById(foundUserId)
+        Member foundUser = userRepository.findById(foundUserId)
                 .orElseThrow(() -> new IllegalArgumentException("Found user not found"));
 
         // 보상 상태를 'PAID'로 설정하여 지급 완료
@@ -66,7 +66,7 @@ public class RewardService {
 
         PointTransaction transaction = PointTransaction.builder()
                 .points(reward.getAmount())
-                .user(foundUser)
+                .member(foundUser)
                 .description("보상 지급") // 거래 설명 추가 가능
                 .build();
 

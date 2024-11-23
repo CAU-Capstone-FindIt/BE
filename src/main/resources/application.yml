@@ -7,7 +7,7 @@ spring:
     password: ${database-password}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
     properties:
@@ -15,7 +15,9 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
   logging.level:
-    org.hibernate.SQL: debug
+    org.hibernate.SQL: info
+    org.apache.kafka: warn  # Kafka 관련 로그를 WARN으로 설정
+    org.springframework.kafka: warn
 
 # 파일 업로드 설정
 spring.servlet.multipart:
@@ -41,8 +43,22 @@ kafka:
     group-id: ${KAFKA_CONSUMER_GROUP_ID}
     auto-offset-reset: earliest
     enable-auto-commit: true
+    max-poll-records: 10 # 한 번에 처리할 메시지 수 제한 (최적화)
+    properties:
+      fetch.min.bytes: 1 # 최소 데이터 크기 (바이트 단위)
+      fetch.max.wait.ms: 500 # 최대 대기 시간 (밀리초 단위)
     key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
   producer:
     key-serializer: org.apache.kafka.common.serialization.StringSerializer
     value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+    properties:
+      retries: 3 # 실패 시 재시도 횟수
+      batch.size: 16384 # 배치 크기 (16KB)
+      linger.ms: 1 # 배치 전송 지연 시간
+      compression.type: snappy # 메시지 압축 방식
+
+# Kafka Listener
+spring.kafka.listener:
+  ack-mode: batch # 배치 단위로 메시지 확인
+

@@ -22,13 +22,13 @@ public class Reward {
 
     // 보상을 설정한 사용자 (분실자)
     @ManyToOne
-    @JoinColumn(name = "lost_user_id")
-    private User lostUser;        // 분실자 정보 (포인트를 차감할 대상)
+    @JoinColumn(name = "lost_member_id")
+    private Member lostUser;        // 분실자 정보 (포인트를 차감할 대상)
 
     // 보상을 받는 사용자 (습득자)
     @ManyToOne
-    @JoinColumn(name = "found_user_id")
-    private User foundUser;       // 습득자 정보 (포인트를 지급받을 대상)
+    @JoinColumn(name = "found_member_id")
+    private Member foundUser;       // 습득자 정보 (포인트를 지급받을 대상)
 
     // 기본 생성자 추가 (JPA를 위한 기본 생성자)
     public Reward() {

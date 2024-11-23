@@ -26,24 +26,24 @@ public class ItemService {
     private final LostItemRepository lostItemRepository;
     private final FoundItemRepository foundItemRepository;
     private final LocationRepository locationRepository;
-    private final UserRepository userRepository;
+    private final MemberRepository memberRepository;
     private final RewardRepository rewardRepository;
     private final FoundItemCommentRepository foundItemCommentRepository;
     private final LostItemCommentRepository lostItemCommentRepository;
 
     @Transactional
     public void registerLostItem(LostItemRequest lostItemDTO) {
-        User user = userRepository.findById(lostItemDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Member member = memberRepository.findById(lostItemDTO.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
-        // Check if user has enough points if reward is requested
+        // Check if member has enough points if reward is requested
         if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
-            if (user.getPoints() < lostItemDTO.getRewardAmount()) {
+            if (member.getPoints() < lostItemDTO.getRewardAmount()) {
                 throw new IllegalArgumentException("Insufficient points for setting the reward.");
             }
-            // Deduct points from user
-            user.adjustPoints(-lostItemDTO.getRewardAmount());
-            userRepository.save(user);
+            // Deduct points from member
+            member.adjustPoints(-lostItemDTO.getRewardAmount());
+            memberRepository.save(member);
         }
 
         Location location = saveLocation(lostItemDTO.getLatitude(), lostItemDTO.getLongitude(), lostItemDTO.getAddress());
@@ -55,7 +55,7 @@ public class ItemService {
             reward.setAmount(lostItemDTO.getRewardAmount());
             reward.setCurrency("Points");
             reward.setStatus(RewardStatus.PENDING);
-            reward.setLostUser(user);
+            reward.setLostUser(member);
             reward = rewardRepository.save(reward);
         }
 
@@ -67,7 +67,7 @@ public class ItemService {
         lostItem.setBrand(lostItemDTO.getBrand());
         lostItem.setLostDate(lostItemDTO.getLostDate());
         lostItem.setLocation(location);
-        lostItem.setUser(user);
+        lostItem.setMember(member);
         lostItem.setReward(reward);
         lostItem.setStatus(lostItemDTO.getStatus());
 
@@ -75,8 +75,8 @@ public class ItemService {
     }
 
     public void reportFoundItem(FoundItemRequest foundItemDTO) {
-        User user = userRepository.findById(foundItemDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Member member = memberRepository.findById(foundItemDTO.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         Location location = saveLocation(foundItemDTO.getLatitude(), foundItemDTO.getLongitude(), foundItemDTO.getAddress());
 
@@ -84,7 +84,7 @@ public class ItemService {
         foundItem.setDescription(foundItemDTO.getDescription());
         foundItem.setFoundDate(foundItemDTO.getFoundDate());
         foundItem.setLocation(location);
-        foundItem.setUser(user);
+        foundItem.setMember(member);
         foundItem.setPhoto(foundItemDTO.getPhoto());
         foundItem.setCategory(foundItemDTO.getCategory());  // Category Enum으로 설정
         foundItem.setColor(foundItemDTO.getColor());
@@ -118,25 +118,23 @@ public class ItemService {
         return foundItemRepository.findAll();
     }
 
-    public List<LostItem> getAllLostItems(){
+    public List<LostItem> getAllLostItems() {
         return lostItemRepository.findAll();
     }
 
-    // 댓글 등록
     @Transactional
     public FoundItemCommentResponse registerFoundItemComment(FoundItemCommentRequest request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Member member = memberRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         FoundItem foundItem = foundItemRepository.findById(request.getFoundItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Found item not found"));
 
         FoundItemComment comment = new FoundItemComment();
-        comment.setUser(user);
+        comment.setMember(member);
         comment.setFoundItem(foundItem);
         comment.setContent(request.getContent());
 
-        // 부모 댓글이 있을 경우 설정
         if (request.getParentCommentId() != null && request.getParentCommentId() != 0) {
             FoundItemComment parentComment = foundItemCommentRepository.findById(request.getParentCommentId())
                     .orElseThrow(() -> new IllegalArgumentException("Parent comment not found"));
@@ -147,8 +145,6 @@ public class ItemService {
         return toFoundItemCommentResponseWithChildren(savedComment);
     }
 
-
-    // 댓글 수정
     @Transactional
     public FoundItemCommentResponse updateFoundItemComment(Long commentId, FoundItemCommentRequest request) {
         FoundItemComment comment = foundItemCommentRepository.findById(commentId)
@@ -160,7 +156,6 @@ public class ItemService {
         return toFoundItemCommentResponse(updatedComment);
     }
 
-    // 댓글 삭제
     @Transactional
     public void deleteFoundItemComment(Long commentId) {
         FoundItemComment comment = foundItemCommentRepository.findById(commentId)
@@ -169,17 +164,16 @@ public class ItemService {
         foundItemCommentRepository.delete(comment);
     }
 
-    // LostItem 댓글 등록
     @Transactional
     public LostItemCommentResponse registerLostItemComment(LostItemCommentRequest request) {
-        User user = userRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+        Member member = memberRepository.findById(request.getUserId())
+                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
         LostItem lostItem = lostItemRepository.findById(request.getLostItemId())
                 .orElseThrow(() -> new IllegalArgumentException("Lost item not found"));
 
         LostItemComment comment = new LostItemComment();
-        comment.setUser(user);
+        comment.setMember(member);
         comment.setLostItem(lostItem);
         comment.setContent(request.getContent());
 
@@ -193,7 +187,6 @@ public class ItemService {
         return toLostItemCommentResponse(savedComment);
     }
 
-    // LostItem 댓글 수정
     @Transactional
     public LostItemCommentResponse updateLostItemComment(Long commentId, LostItemCommentRequest request) {
         LostItemComment comment = lostItemCommentRepository.findById(commentId)
@@ -205,7 +198,6 @@ public class ItemService {
         return toLostItemCommentResponse(updatedComment);
     }
 
-    // LostItem 댓글 삭제
     @Transactional
     public void deleteLostItemComment(Long commentId) {
         LostItemComment comment = lostItemCommentRepository.findById(commentId)
@@ -214,34 +206,24 @@ public class ItemService {
         lostItemCommentRepository.delete(comment);
     }
 
-    //LostItem 상세 조회
     public LostItemResponse getLostItemDetails(Long lostItemId) {
-        // LostItem을 찾고, 없으면 예외 발생
         LostItem lostItem = lostItemRepository.findById(lostItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Lost item not found"));
 
-        // LostItemResponse로 변환하고, 댓글을 포함하여 반환
-        LostItemResponse response = toLostItemResponseWithComments(lostItem);
-        return response;
+        return toLostItemResponseWithComments(lostItem);
     }
 
-    // FoundItem 상세 조회
     public FoundItemResponse getFoundItemDetails(Long foundItemId) {
-        // FoundItem을 찾고, 없으면 예외 발생
         FoundItem foundItem = foundItemRepository.findById(foundItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Found item not found"));
 
-        // FoundItemResponse로 변환하고, 댓글을 포함하여 반환
-        FoundItemResponse response = toFoundItemResponseWithComments(foundItem);
-        return response;
+        return toFoundItemResponseWithComments(foundItem);
     }
-
-
 
     public LostItemResponse toLostItemResponse(LostItem lostItem) {
         LostItemResponse response = new LostItemResponse();
         response.setId(lostItem.getId());
-        response.setUserId(lostItem.getUser().getId());
+        response.setUserId(lostItem.getMember().getId());
         response.setName(lostItem.getName());
         response.setCategory(lostItem.getCategory());
         response.setColor(lostItem.getColor());
@@ -262,25 +244,11 @@ public class ItemService {
         return response;
     }
 
-    private LostItemResponse toLostItemResponseWithComments(LostItem lostItem) {
-        LostItemResponse response = new LostItemResponse();
-        response.setId(lostItem.getId());
-        response.setUserId(lostItem.getUser().getId());
-        response.setName(lostItem.getName());
-        response.setCategory(lostItem.getCategory());
-        response.setColor(lostItem.getColor());
-        response.setBrand(lostItem.getBrand());
-        response.setDescription(lostItem.getDescription());
-        response.setLostDate(lostItem.getLostDate());
-        response.setAddress(lostItem.getLocation().getAddress());
-        response.setRewardId(lostItem.getReward() != null ? lostItem.getReward().getId() : null);
-        response.setStatus(lostItem.getStatus());
-        response.setCreatedDate(lostItem.getCreatedDate());
-        response.setModifiedDate(lostItem.getModifiedDate());
+    public LostItemResponse toLostItemResponseWithComments(LostItem lostItem) {
+        LostItemResponse response = toLostItemResponse(lostItem);
 
-        // 최상위 댓글 목록을 가져오고, 각각에 대한 대댓글을 포함하여 설정
         List<LostItemCommentResponse> comments = lostItem.getComments().stream()
-                .filter(comment -> comment.getParentComment() == null)  // 최상위 댓글만 필터링
+                .filter(comment -> comment.getParentComment() == null)
                 .map(this::toLostItemCommentResponseWithChildren)
                 .collect(Collectors.toList());
         response.setComments(comments);
@@ -288,10 +256,9 @@ public class ItemService {
         return response;
     }
 
-    private LostItemCommentResponse toLostItemCommentResponseWithChildren(LostItemComment comment) {
+    public LostItemCommentResponse toLostItemCommentResponseWithChildren(LostItemComment comment) {
         LostItemCommentResponse response = toLostItemCommentResponse(comment);
 
-        // 자식 댓글이 있는 경우 가져오기
         List<LostItemCommentResponse> childResponses = comment.getChildComments() != null
                 ? comment.getChildComments().stream()
                 .map(this::toLostItemCommentResponseWithChildren)
@@ -302,11 +269,10 @@ public class ItemService {
         return response;
     }
 
-
-    private LostItemCommentResponse toLostItemCommentResponse(LostItemComment comment) {
+    public LostItemCommentResponse toLostItemCommentResponse(LostItemComment comment) {
         LostItemCommentResponse response = new LostItemCommentResponse();
         response.setId(comment.getId());
-        response.setUserId(comment.getUser().getId());
+        response.setUserId(comment.getMember().getId());
         response.setLostItemId(comment.getLostItem().getId());
         response.setContent(comment.getContent());
         response.setCreatedDate(comment.getCreatedDate());
@@ -314,11 +280,10 @@ public class ItemService {
         return response;
     }
 
-    // FoundItemResponse로 변환하는 메서드 추가
     public FoundItemResponse toFoundItemResponse(FoundItem foundItem) {
         FoundItemResponse response = new FoundItemResponse();
         response.setId(foundItem.getId());
-        response.setUserId(foundItem.getUser().getId());
+        response.setUserId(foundItem.getMember().getId());
         response.setDescription(foundItem.getDescription());
         response.setFoundDate(foundItem.getFoundDate());
         response.setAddress(foundItem.getLocation().getAddress());
@@ -338,22 +303,10 @@ public class ItemService {
     }
 
     public FoundItemResponse toFoundItemResponseWithComments(FoundItem foundItem) {
-        FoundItemResponse response = new FoundItemResponse();
-        response.setId(foundItem.getId());
-        response.setUserId(foundItem.getUser().getId());
-        response.setDescription(foundItem.getDescription());
-        response.setFoundDate(foundItem.getFoundDate());
-        response.setAddress(foundItem.getLocation().getAddress());
-        response.setPhoto(foundItem.getPhoto());
-        response.setCategory(foundItem.getCategory());
-        response.setColor(foundItem.getColor());
-        response.setBrand(foundItem.getBrand());
-        response.setCreatedDate(foundItem.getCreatedDate());
-        response.setModifiedDate(foundItem.getModifiedDate());
+        FoundItemResponse response = toFoundItemResponse(foundItem);
 
-        // 최상위 댓글 목록을 가져오고, 각각에 대한 대댓글을 포함하여 설정
         List<FoundItemCommentResponse> comments = foundItem.getComments().stream()
-                .filter(comment -> comment.getParentComment() == null)  // 최상위 댓글만 필터링
+                .filter(comment -> comment.getParentComment() == null)
                 .map(this::toFoundItemCommentResponseWithChildren)
                 .collect(Collectors.toList());
         response.setComments(comments);
@@ -361,27 +314,23 @@ public class ItemService {
         return response;
     }
 
-
-
-    private FoundItemCommentResponse toFoundItemCommentResponseWithChildren(FoundItemComment comment) {
+    public FoundItemCommentResponse toFoundItemCommentResponseWithChildren(FoundItemComment comment) {
         FoundItemCommentResponse response = toFoundItemCommentResponse(comment);
 
-        // 자식 댓글을 가져오기
         List<FoundItemCommentResponse> childResponses = comment.getChildComments() != null
                 ? comment.getChildComments().stream()
-                .map(this::toFoundItemCommentResponseWithChildren)  // 재귀적으로 자식 댓글 처리
+                .map(this::toFoundItemCommentResponseWithChildren)
                 .collect(Collectors.toList())
-                : List.of();  // 자식 댓글이 없을 때 빈 리스트 설정
+                : List.of();
 
         response.setChildComments(childResponses);
         return response;
     }
 
-
-    private FoundItemCommentResponse toFoundItemCommentResponse(FoundItemComment comment) {
+    public FoundItemCommentResponse toFoundItemCommentResponse(FoundItemComment comment) {
         FoundItemCommentResponse response = new FoundItemCommentResponse();
         response.setId(comment.getId());
-        response.setUserId(comment.getUser().getId());
+        response.setUserId(comment.getMember().getId());
         response.setFoundItemId(comment.getFoundItem().getId());
         response.setContent(comment.getContent());
         response.setCreatedDate(comment.getCreatedDate());
