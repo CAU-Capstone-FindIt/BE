@@ -7,7 +7,7 @@ spring:
     password: ${database-password}
     driver-class-name: com.mysql.cj.jdbc.Driver
   jpa:
-    show-sql: true
+    show-sql: false
     hibernate:
       ddl-auto: ${SPRING_JPA_HIBERNATE_DDL_AUTO}
     properties:
@@ -15,7 +15,7 @@ spring:
         format_sql: true
         dialect: org.hibernate.dialect.MySQLDialect
   logging.level:
-    org.hibernate.SQL: debug
+    org.hibernate.SQL: info
     org.apache.kafka: warn  # Kafka 관련 로그를 WARN으로 설정
     org.springframework.kafka: warn
 
@@ -61,3 +61,4 @@ kafka:
 # Kafka Listener
 spring.kafka.listener:
   ack-mode: batch # 배치 단위로 메시지 확인
+
