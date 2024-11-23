@@ -45,4 +45,6 @@ public class LostItem extends BaseTimeEntity {
 
     @OneToMany(mappedBy = "lostItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LostItemComment> comments = new ArrayList<>();
+
+    private String image;
 }

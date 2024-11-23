@@ -9,6 +9,8 @@ import com.example.find_it.dto.Response.FoundItemCommentResponse;
 import com.example.find_it.dto.Response.FoundItemResponse;
 import com.example.find_it.dto.Response.LostItemCommentResponse;
 import com.example.find_it.dto.Response.LostItemResponse;
+import com.example.find_it.exception.CustomException;
+import com.example.find_it.exception.ErrorCode;
 import com.example.find_it.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -32,14 +34,12 @@ public class ItemService {
     private final LostItemCommentRepository lostItemCommentRepository;
 
     @Transactional
-    public void registerLostItem(LostItemRequest lostItemDTO) {
-        Member member = memberRepository.findById(lostItemDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+    public void registerLostItem(LostItemRequest lostItemDTO, Member member) {
 
         // Check if member has enough points if reward is requested
         if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
             if (member.getPoints() < lostItemDTO.getRewardAmount()) {
-                throw new IllegalArgumentException("Insufficient points for setting the reward.");
+                throw new CustomException(ErrorCode.INSUFFICIENT_POINTS);
             }
             // Deduct points from member
             member.adjustPoints(-lostItemDTO.getRewardAmount());
@@ -70,13 +70,12 @@ public class ItemService {
         lostItem.setMember(member);
         lostItem.setReward(reward);
         lostItem.setStatus(lostItemDTO.getStatus());
+        lostItem.setImage(lostItemDTO.getImage());
 
         lostItemRepository.save(lostItem);
     }
 
-    public void reportFoundItem(FoundItemRequest foundItemDTO) {
-        Member member = memberRepository.findById(foundItemDTO.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
+    public void reportFoundItem(FoundItemRequest foundItemDTO, Member member) {
 
         Location location = saveLocation(foundItemDTO.getLatitude(), foundItemDTO.getLongitude(), foundItemDTO.getAddress());
 
@@ -123,54 +122,74 @@ public class ItemService {
     }
 
     @Transactional
-    public FoundItemCommentResponse registerFoundItemComment(FoundItemCommentRequest request) {
-        Member member = memberRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
-
+    public FoundItemCommentResponse registerFoundItemComment(FoundItemCommentRequest request, Member member) {
+        // Fetch the FoundItem entity
         FoundItem foundItem = foundItemRepository.findById(request.getFoundItemId())
-                .orElseThrow(() -> new IllegalArgumentException("Found item not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.FOUND_ITEM_NOT_FOUND));
 
+        // Create the comment
         FoundItemComment comment = new FoundItemComment();
-        comment.setMember(member);
+        comment.setMember(member); // Associate the comment with the authenticated member
         comment.setFoundItem(foundItem);
         comment.setContent(request.getContent());
 
-        if (request.getParentCommentId() != null && request.getParentCommentId() != 0) {
+        // Handle parent comment for replies (optional)
+        if (request.getParentCommentId() != null) {
             FoundItemComment parentComment = foundItemCommentRepository.findById(request.getParentCommentId())
-                    .orElseThrow(() -> new IllegalArgumentException("Parent comment not found"));
+                    .orElseThrow(() -> new CustomException(ErrorCode.PARENT_COMMENT_NOT_FOUND));
             comment.setParentComment(parentComment);
         }
 
+        // Save the comment
         FoundItemComment savedComment = foundItemCommentRepository.save(comment);
-        return toFoundItemCommentResponseWithChildren(savedComment);
+
+        // Convert to response DTO and return
+        return toFoundItemCommentResponse(savedComment);
     }
 
-    @Transactional
-    public FoundItemCommentResponse updateFoundItemComment(Long commentId, FoundItemCommentRequest request) {
-        FoundItemComment comment = foundItemCommentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
 
+    @Transactional
+    public FoundItemCommentResponse updateFoundItemComment(Long commentId, FoundItemCommentRequest request, Member member) {
+        // Fetch the comment from the repository
+        FoundItemComment comment = foundItemCommentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+
+        // Validate ownership
+        if (!comment.getMember().getId().equals(member.getId())) {
+            throw new CustomException(ErrorCode.NOT_AUTHORIZED);
+        }
+
+        // Update the content
         comment.setContent(request.getContent());
+
+        // Save the updated comment
         FoundItemComment updatedComment = foundItemCommentRepository.save(comment);
 
+        // Convert to response DTO and return
         return toFoundItemCommentResponse(updatedComment);
     }
 
-    @Transactional
-    public void deleteFoundItemComment(Long commentId) {
-        FoundItemComment comment = foundItemCommentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
 
+    @Transactional
+    public void deleteFoundItemComment(Long commentId, Member member) {
+        // Fetch the comment from the repository
+        FoundItemComment comment = foundItemCommentRepository.findById(commentId)
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+
+        // Validate ownership
+        if (!comment.getMember().getId().equals(member.getId())) {
+            throw new CustomException(ErrorCode.NOT_AUTHORIZED);
+        }
+
+        // Delete the comment
         foundItemCommentRepository.delete(comment);
     }
 
-    @Transactional
-    public LostItemCommentResponse registerLostItemComment(LostItemCommentRequest request) {
-        Member member = memberRepository.findById(request.getUserId())
-                .orElseThrow(() -> new IllegalArgumentException("Member not found"));
 
+    @Transactional
+    public LostItemCommentResponse registerLostItemComment(LostItemCommentRequest request, Member member) {
         LostItem lostItem = lostItemRepository.findById(request.getLostItemId())
-                .orElseThrow(() -> new IllegalArgumentException("Lost item not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.LOST_ITEM_NOT_FOUND));
 
         LostItemComment comment = new LostItemComment();
         comment.setMember(member);
@@ -179,7 +198,7 @@ public class ItemService {
 
         if (request.getParentCommentId() != null) {
             LostItemComment parentComment = lostItemCommentRepository.findById(request.getParentCommentId())
-                    .orElseThrow(() -> new IllegalArgumentException("Parent comment not found"));
+                    .orElseThrow(() -> new CustomException(ErrorCode.PARENT_COMMENT_NOT_FOUND));
             comment.setParentComment(parentComment);
         }
 
@@ -187,35 +206,48 @@ public class ItemService {
         return toLostItemCommentResponse(savedComment);
     }
 
+
+
     @Transactional
-    public LostItemCommentResponse updateLostItemComment(Long commentId, LostItemCommentRequest request) {
+    public LostItemCommentResponse updateLostItemComment(Long commentId, LostItemCommentRequest request, Member member) {
         LostItemComment comment = lostItemCommentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+
+        if (!comment.getMember().getId().equals(member.getId())) {
+            throw new CustomException(ErrorCode.NOT_AUTHORIZED);
+        }
 
         comment.setContent(request.getContent());
         LostItemComment updatedComment = lostItemCommentRepository.save(comment);
-
         return toLostItemCommentResponse(updatedComment);
     }
 
+
+
     @Transactional
-    public void deleteLostItemComment(Long commentId) {
+    public void deleteLostItemComment(Long commentId, Member member) {
         LostItemComment comment = lostItemCommentRepository.findById(commentId)
-                .orElseThrow(() -> new IllegalArgumentException("Comment not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.COMMENT_NOT_FOUND));
+
+        if (!comment.getMember().getId().equals(member.getId())) {
+            throw new CustomException(ErrorCode.NOT_AUTHORIZED);
+        }
 
         lostItemCommentRepository.delete(comment);
     }
 
+
+
     public LostItemResponse getLostItemDetails(Long lostItemId) {
         LostItem lostItem = lostItemRepository.findById(lostItemId)
-                .orElseThrow(() -> new IllegalArgumentException("Lost item not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.LOST_ITEM_NOT_FOUND));
 
         return toLostItemResponseWithComments(lostItem);
     }
 
     public FoundItemResponse getFoundItemDetails(Long foundItemId) {
         FoundItem foundItem = foundItemRepository.findById(foundItemId)
-                .orElseThrow(() -> new IllegalArgumentException("Found item not found"));
+                .orElseThrow(() -> new CustomException(ErrorCode.FOUND_ITEM_NOT_FOUND));
 
         return toFoundItemResponseWithComments(foundItem);
     }

@@ -10,7 +10,6 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 public class LostItemRequest {
-    private Long userId;
     private String name;
     private String description;
     private Category category;
@@ -22,6 +21,8 @@ public class LostItemRequest {
     private String address;
     private Integer rewardAmount;  // Changed from rewardId to rewardAmount
     private LostItemStatus status;
+
+    private String image;
 }
 
 
