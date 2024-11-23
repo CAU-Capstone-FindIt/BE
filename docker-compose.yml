@@ -45,4 +45,6 @@ services:
     depends_on:
       - kafka
     command: >
-      sh -c "java -jar app.jar > /logs/spring-boot.log 2>&1"
+      sh -c "java -jar app.jar"
+
+      
