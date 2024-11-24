@@ -14,7 +14,7 @@ public class FoundItemRequest {
     private Double latitude;
     private Double longitude;
     private String address;
-    private String photo;
+    private String image;
 
     // Additional fields to match the UI
     private Category category;

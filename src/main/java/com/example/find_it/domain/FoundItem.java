@@ -29,7 +29,7 @@ public class FoundItem extends BaseTimeEntity {
     @JoinColumn(name = "location_id")
     private Location location;
 
-    private String photo;
+    private String image;
 
     @Enumerated(EnumType.STRING)
     private Category category;  // Category Enum으로 수정

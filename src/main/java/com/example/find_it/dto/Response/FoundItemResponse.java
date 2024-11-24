@@ -18,7 +18,7 @@ public class FoundItemResponse {
     private Double latitude;              // 위치 위도
     private Double longitude;             // 위치 경도
     private String address;               // 위치 주소
-    private String photo;                 // 사진 URL
+    private String image;                 // 사진 URL
 
     // Additional fields
     private Category category;            // 카테고리

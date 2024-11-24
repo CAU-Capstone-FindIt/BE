@@ -84,7 +84,7 @@ public class ItemService {
         foundItem.setFoundDate(foundItemDTO.getFoundDate());
         foundItem.setLocation(location);
         foundItem.setMember(member);
-        foundItem.setPhoto(foundItemDTO.getPhoto());
+        foundItem.setImage(foundItemDTO.getImage());
         foundItem.setCategory(foundItemDTO.getCategory());  // Category Enum으로 설정
         foundItem.setColor(foundItemDTO.getColor());
         foundItem.setBrand(foundItemDTO.getBrand());
@@ -319,7 +319,7 @@ public class ItemService {
         response.setDescription(foundItem.getDescription());
         response.setFoundDate(foundItem.getFoundDate());
         response.setAddress(foundItem.getLocation().getAddress());
-        response.setPhoto(foundItem.getPhoto());
+        response.setImage(foundItem.getImage());
         response.setCategory(foundItem.getCategory());
         response.setColor(foundItem.getColor());
         response.setBrand(foundItem.getBrand());

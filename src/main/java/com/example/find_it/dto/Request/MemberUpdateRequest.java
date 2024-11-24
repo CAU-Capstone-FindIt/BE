@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MemberUpdateRequest {
-    private String name;
-    private String profileImage;
+    private String nickname; // nickname만 포함
 }
+
 
