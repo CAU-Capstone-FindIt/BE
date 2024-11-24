@@ -13,6 +13,7 @@ import java.util.List;
 public class FoundItemResponse {
     private Long id;                      // FoundItem의 ID
     private Long userId;                  // 작성자 ID
+    private String name;
     private String description;           // 설명
     private LocalDate foundDate;          // 발견된 날짜
     private Double latitude;              // 위치 위도

@@ -66,7 +66,9 @@ public class ItemService {
         lostItem.setColor(lostItemDTO.getColor());
         lostItem.setBrand(lostItemDTO.getBrand());
         lostItem.setLostDate(lostItemDTO.getLostDate());
-        lostItem.setLocation(location);
+        lostItem.setLatitude(lostItemDTO.getLatitude()); // 위도
+        lostItem.setLongitude(lostItemDTO.getLongitude()); // 경도
+        lostItem.setAddress(lostItemDTO.getAddress()); // 주소
         lostItem.setMember(member);
         lostItem.setReward(reward);
         lostItem.setStatus(lostItemDTO.getStatus());
@@ -77,12 +79,13 @@ public class ItemService {
 
     public void reportFoundItem(FoundItemRequest foundItemDTO, Member member) {
 
-        Location location = saveLocation(foundItemDTO.getLatitude(), foundItemDTO.getLongitude(), foundItemDTO.getAddress());
-
         FoundItem foundItem = new FoundItem();
+        foundItem.setName(foundItemDTO.getName());            // name 필드 추가 처리
         foundItem.setDescription(foundItemDTO.getDescription());
         foundItem.setFoundDate(foundItemDTO.getFoundDate());
-        foundItem.setLocation(location);
+        foundItem.setLatitude(foundItemDTO.getLatitude()); // 위도
+        foundItem.setLongitude(foundItemDTO.getLongitude()); // 경도
+        foundItem.setAddress(foundItemDTO.getAddress()); // 주소
         foundItem.setMember(member);
         foundItem.setImage(foundItemDTO.getImage());
         foundItem.setCategory(foundItemDTO.getCategory());  // Category Enum으로 설정
@@ -262,7 +265,9 @@ public class ItemService {
         response.setBrand(lostItem.getBrand());
         response.setDescription(lostItem.getDescription());
         response.setLostDate(lostItem.getLostDate());
-        response.setAddress(lostItem.getLocation().getAddress());
+        response.setLatitude(lostItem.getLatitude()); // 위도
+        response.setLongitude(lostItem.getLongitude()); // 경도
+        response.setAddress(lostItem.getAddress()); // 주소
         response.setRewardId(lostItem.getReward() != null ? lostItem.getReward().getId() : null);
         response.setStatus(lostItem.getStatus());
         response.setCreatedDate(lostItem.getCreatedDate());
@@ -316,9 +321,12 @@ public class ItemService {
         FoundItemResponse response = new FoundItemResponse();
         response.setId(foundItem.getId());
         response.setUserId(foundItem.getMember().getId());
+        response.setName(foundItem.getName());                // name 필드 추가 반환
         response.setDescription(foundItem.getDescription());
         response.setFoundDate(foundItem.getFoundDate());
-        response.setAddress(foundItem.getLocation().getAddress());
+        response.setLatitude(foundItem.getLatitude()); // 위도
+        response.setLongitude(foundItem.getLongitude()); // 경도
+        response.setAddress(foundItem.getAddress()); // 주소
         response.setImage(foundItem.getImage());
         response.setCategory(foundItem.getCategory());
         response.setColor(foundItem.getColor());

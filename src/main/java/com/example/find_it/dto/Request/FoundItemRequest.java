@@ -9,6 +9,7 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class FoundItemRequest {
+    private String name;
     private String description;
     private LocalDate foundDate;
     private Double latitude;

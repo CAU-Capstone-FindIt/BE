@@ -27,6 +27,7 @@ public class LostItem extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private Category category;  // Category Enum으로 수정
+
     private String color;
     private String brand;
 
@@ -39,9 +40,10 @@ public class LostItem extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private LostItemStatus status;
 
-    @ManyToOne
-    @JoinColumn(name = "location_id")
-    private Location location;
+    // Location 필드 통합
+    private Double latitude;  // 위도
+    private Double longitude; // 경도
+    private String address;   // 주소
 
     @OneToMany(mappedBy = "lostItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LostItemComment> comments = new ArrayList<>();
