@@ -5,6 +5,7 @@ import com.example.find_it.domain.LostItemStatus;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -15,7 +16,7 @@ public class LostItemRequest {
     private Category category;
     private String color;
     private String brand;
-    private LocalDateTime lostDate;
+    private LocalDate lostDate;
     private Double latitude;
     private Double longitude;
     private String address;
