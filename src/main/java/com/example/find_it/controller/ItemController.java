@@ -1,10 +1,7 @@
 package com.example.find_it.controller;
 
 import com.example.find_it.domain.Member;
-import com.example.find_it.dto.Request.FoundItemCommentRequest;
-import com.example.find_it.dto.Request.FoundItemRequest;
-import com.example.find_it.dto.Request.LostItemCommentRequest;
-import com.example.find_it.dto.Request.LostItemRequest;
+import com.example.find_it.dto.Request.*;
 import com.example.find_it.dto.Response.FoundItemCommentResponse;
 import com.example.find_it.dto.Response.FoundItemResponse;
 import com.example.find_it.dto.Response.LostItemCommentResponse;
@@ -226,4 +223,27 @@ public class ItemController {
         return ResponseEntity.ok(response);
     }
 
+    @Operation(summary = "분실물 상세 검색", description = "3개 이상의 조건이 일치하는 분실물을 검색합니다.")
+    @PostMapping("/lost/advanced-search")
+    public ResponseEntity<List<LostItemResponse>> advancedSearchLostItems(
+            @RequestBody LostItemSearchRequest searchCriteria) {
+
+        List<LostItemResponse> results = itemService.advancedSearchLostItems(searchCriteria).stream()
+                .map(itemService::toLostItemResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(results);
+    }
+
+    @Operation(summary = "습득물 상세 검색", description = "3개 이상의 조건이 일치하는 습득물을 검색합니다.")
+    @PostMapping("/found/advanced-search")
+    public ResponseEntity<List<FoundItemResponse>> advancedSearchFoundItems(
+            @RequestBody FoundItemSearchRequest searchCriteria) {
+
+        List<FoundItemResponse> results = itemService.advancedSearchFoundItems(searchCriteria).stream()
+                .map(itemService::toFoundItemResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(results);
+    }
 }

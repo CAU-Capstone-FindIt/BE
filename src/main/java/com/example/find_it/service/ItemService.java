@@ -1,10 +1,7 @@
 package com.example.find_it.service;
 
 import com.example.find_it.domain.*;
-import com.example.find_it.dto.Request.FoundItemCommentRequest;
-import com.example.find_it.dto.Request.FoundItemRequest;
-import com.example.find_it.dto.Request.LostItemCommentRequest;
-import com.example.find_it.dto.Request.LostItemRequest;
+import com.example.find_it.dto.Request.*;
 import com.example.find_it.dto.Response.FoundItemCommentResponse;
 import com.example.find_it.dto.Response.FoundItemResponse;
 import com.example.find_it.dto.Response.LostItemCommentResponse;
@@ -239,6 +236,75 @@ public class ItemService {
         lostItemCommentRepository.delete(comment);
     }
 
+    @Transactional
+    public List<LostItem> advancedSearchLostItems(LostItemSearchRequest searchCriteria) {
+        return lostItemRepository.findAll().stream()
+                .filter(item -> {
+                    int matchCount = 0;
+
+                    if (searchCriteria.getName() != null && searchCriteria.getName().equalsIgnoreCase(item.getName())) {
+                        matchCount++;
+                    }
+                    if (searchCriteria.getBrand() != null && searchCriteria.getBrand().equalsIgnoreCase(item.getBrand())) {
+                        matchCount++;
+                    }
+                    if (searchCriteria.getColor() != null && searchCriteria.getColor().equalsIgnoreCase(item.getColor())) {
+                        matchCount++;
+                    }
+                    if (searchCriteria.getCategory() != null && searchCriteria.getCategory() == item.getCategory()) {
+                        matchCount++;
+                    }
+                    if (searchCriteria.getAddress() != null && searchCriteria.getAddress().equalsIgnoreCase(item.getAddress())) {
+                        matchCount++;
+                    }
+                    // Check if lostDate is between startDate and endDate
+                    if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
+                        if (item.getLostDate() != null &&
+                                (item.getLostDate().isEqual(searchCriteria.getStartDate()) || item.getLostDate().isAfter(searchCriteria.getStartDate())) &&
+                                (item.getLostDate().isEqual(searchCriteria.getEndDate()) || item.getLostDate().isBefore(searchCriteria.getEndDate()))) {
+                            matchCount++;
+                        }
+                    }
+
+                    return matchCount >= 3; // Match at least 3 conditions
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<FoundItem> advancedSearchFoundItems(FoundItemSearchRequest searchCriteria) {
+        return foundItemRepository.findAll().stream()
+                .filter(item -> {
+                    int matchCount = 0;
+
+                    if (searchCriteria.getName() != null && searchCriteria.getName().equalsIgnoreCase(item.getName())) {
+                        matchCount++;
+                    }
+                    if (searchCriteria.getBrand() != null && searchCriteria.getBrand().equalsIgnoreCase(item.getBrand())) {
+                        matchCount++;
+                    }
+                    if (searchCriteria.getColor() != null && searchCriteria.getColor().equalsIgnoreCase(item.getColor())) {
+                        matchCount++;
+                    }
+                    if (searchCriteria.getCategory() != null && searchCriteria.getCategory() == item.getCategory()) {
+                        matchCount++;
+                    }
+                    if (searchCriteria.getAddress() != null && searchCriteria.getAddress().equalsIgnoreCase(item.getAddress())) {
+                        matchCount++;
+                    }
+                    // Check if foundDate is between startDate and endDate
+                    if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
+                        if (item.getFoundDate() != null &&
+                                (item.getFoundDate().isEqual(searchCriteria.getStartDate()) || item.getFoundDate().isAfter(searchCriteria.getStartDate())) &&
+                                (item.getFoundDate().isEqual(searchCriteria.getEndDate()) || item.getFoundDate().isBefore(searchCriteria.getEndDate()))) {
+                            matchCount++;
+                        }
+                    }
+
+                    return matchCount >= 3; // Match at least 3 conditions
+                })
+                .collect(Collectors.toList());
+    }
 
 
     public LostItemResponse getLostItemDetails(Long lostItemId) {

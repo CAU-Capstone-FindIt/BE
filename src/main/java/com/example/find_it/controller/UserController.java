@@ -55,4 +55,13 @@ public class UserController {
         MemberResponse response = MemberResponse.getMemberResponse(updatedMember);
         return ResponseEntity.ok(response);
     }
+
+    @PatchMapping("/points")
+    @Operation(summary = "포인트 충전", description = "사용자의 포인트를 충전합니다.")
+    public ResponseEntity<String> addPoints(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam int points) { // 충전할 포인트를 요청 매개변수로 받음
+        Member member = memberService.addPoints(userDetails, points);
+        return ResponseEntity.ok("충전 완료! 현재 포인트: " + member.getPoints());
+    }
 }

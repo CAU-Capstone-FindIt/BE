@@ -105,4 +105,20 @@ public class MemberService {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
+
+    @Transactional
+    public Member addPoints(UserDetails userDetails, int pointsToAdd) {
+        if (pointsToAdd <= 0) {
+            // INVALID_POINT_AMOUNT로 에러를 던짐
+            throw new CustomException(ErrorCode.INVALID_POINT_AMOUNT);
+        }
+
+        // 현재 사용자의 정보를 가져오기
+        Member member = getMemberByPrincipal(userDetails);
+        member.adjustPoints(pointsToAdd); // 포인트 추가
+        memberRepository.save(member); // 업데이트된 회원 정보 저장
+
+        return member;
+    }
+
 }
