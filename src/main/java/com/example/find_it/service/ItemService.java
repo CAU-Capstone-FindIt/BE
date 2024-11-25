@@ -24,7 +24,6 @@ public class ItemService {
 
     private final LostItemRepository lostItemRepository;
     private final FoundItemRepository foundItemRepository;
-    private final LocationRepository locationRepository;
     private final MemberRepository memberRepository;
     private final RewardRepository rewardRepository;
     private final FoundItemCommentRepository foundItemCommentRepository;
@@ -43,8 +42,6 @@ public class ItemService {
             memberRepository.save(member);
         }
 
-        Location location = saveLocation(lostItemDTO.getLatitude(), lostItemDTO.getLongitude(), lostItemDTO.getAddress());
-
         // Create reward if amount is specified
         Reward reward = null;
         if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
@@ -62,7 +59,7 @@ public class ItemService {
         lostItem.setCategory(lostItemDTO.getCategory());
         lostItem.setColor(lostItemDTO.getColor());
         lostItem.setBrand(lostItemDTO.getBrand());
-        lostItem.setLostDate(lostItemDTO.getLostDate());
+        lostItem.setReportDate(lostItemDTO.getReportDate());
         lostItem.setLatitude(lostItemDTO.getLatitude()); // 위도
         lostItem.setLongitude(lostItemDTO.getLongitude()); // 경도
         lostItem.setAddress(lostItemDTO.getAddress()); // 주소
@@ -79,7 +76,7 @@ public class ItemService {
         FoundItem foundItem = new FoundItem();
         foundItem.setName(foundItemDTO.getName());            // name 필드 추가 처리
         foundItem.setDescription(foundItemDTO.getDescription());
-        foundItem.setFoundDate(foundItemDTO.getFoundDate());
+        foundItem.setReportDate(foundItemDTO.getReportDate());
         foundItem.setLatitude(foundItemDTO.getLatitude()); // 위도
         foundItem.setLongitude(foundItemDTO.getLongitude()); // 경도
         foundItem.setAddress(foundItemDTO.getAddress()); // 주소
@@ -90,11 +87,6 @@ public class ItemService {
         foundItem.setBrand(foundItemDTO.getBrand());
 
         foundItemRepository.save(foundItem);
-    }
-
-    private Location saveLocation(double latitude, double longitude, String address) {
-        Location location = new Location(latitude, longitude, address);
-        return locationRepository.save(location);
     }
 
     private Reward retrieveReward(Long rewardId) {
@@ -259,9 +251,9 @@ public class ItemService {
                     }
                     // Check if lostDate is between startDate and endDate
                     if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
-                        if (item.getLostDate() != null &&
-                                (item.getLostDate().isEqual(searchCriteria.getStartDate()) || item.getLostDate().isAfter(searchCriteria.getStartDate())) &&
-                                (item.getLostDate().isEqual(searchCriteria.getEndDate()) || item.getLostDate().isBefore(searchCriteria.getEndDate()))) {
+                        if (item.getReportDate() != null &&
+                                (item.getReportDate().isEqual(searchCriteria.getStartDate()) || item.getReportDate().isAfter(searchCriteria.getStartDate())) &&
+                                (item.getReportDate().isEqual(searchCriteria.getEndDate()) || item.getReportDate().isBefore(searchCriteria.getEndDate()))) {
                             matchCount++;
                         }
                     }
@@ -294,9 +286,9 @@ public class ItemService {
                     }
                     // Check if foundDate is between startDate and endDate
                     if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
-                        if (item.getFoundDate() != null &&
-                                (item.getFoundDate().isEqual(searchCriteria.getStartDate()) || item.getFoundDate().isAfter(searchCriteria.getStartDate())) &&
-                                (item.getFoundDate().isEqual(searchCriteria.getEndDate()) || item.getFoundDate().isBefore(searchCriteria.getEndDate()))) {
+                        if (item.getReportDate() != null &&
+                                (item.getReportDate().isEqual(searchCriteria.getStartDate()) || item.getReportDate().isAfter(searchCriteria.getStartDate())) &&
+                                (item.getReportDate().isEqual(searchCriteria.getEndDate()) || item.getReportDate().isBefore(searchCriteria.getEndDate()))) {
                             matchCount++;
                         }
                     }
@@ -330,7 +322,7 @@ public class ItemService {
         response.setColor(lostItem.getColor());
         response.setBrand(lostItem.getBrand());
         response.setDescription(lostItem.getDescription());
-        response.setLostDate(lostItem.getLostDate());
+        response.setReportDate(lostItem.getReportDate());
         response.setLatitude(lostItem.getLatitude()); // 위도
         response.setLongitude(lostItem.getLongitude()); // 경도
         response.setAddress(lostItem.getAddress()); // 주소
@@ -376,6 +368,7 @@ public class ItemService {
         LostItemCommentResponse response = new LostItemCommentResponse();
         response.setId(comment.getId());
         response.setUserId(comment.getMember().getId());
+        response.setNickname(comment.getMember().getNickname()); // 작성자 닉네임 설정
         response.setLostItemId(comment.getLostItem().getId());
         response.setContent(comment.getContent());
         response.setCreatedDate(comment.getCreatedDate());
@@ -389,7 +382,7 @@ public class ItemService {
         response.setUserId(foundItem.getMember().getId());
         response.setName(foundItem.getName());                // name 필드 추가 반환
         response.setDescription(foundItem.getDescription());
-        response.setFoundDate(foundItem.getFoundDate());
+        response.setReportDate(foundItem.getReportDate());
         response.setLatitude(foundItem.getLatitude()); // 위도
         response.setLongitude(foundItem.getLongitude()); // 경도
         response.setAddress(foundItem.getAddress()); // 주소
@@ -437,6 +430,7 @@ public class ItemService {
         FoundItemCommentResponse response = new FoundItemCommentResponse();
         response.setId(comment.getId());
         response.setUserId(comment.getMember().getId());
+        response.setNickname(comment.getMember().getNickname()); // 작성자 닉네임 설정
         response.setFoundItemId(comment.getFoundItem().getId());
         response.setContent(comment.getContent());
         response.setCreatedDate(comment.getCreatedDate());

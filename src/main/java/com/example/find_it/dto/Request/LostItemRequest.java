@@ -16,7 +16,7 @@ public class LostItemRequest {
     private Category category;
     private String color;
     private String brand;
-    private LocalDate lostDate;
+    private LocalDate reportDate;
     private Double latitude;
     private Double longitude;
     private String address;

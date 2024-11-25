@@ -11,7 +11,7 @@ import java.time.LocalDate;
 public class FoundItemRequest {
     private String name;
     private String description;
-    private LocalDate foundDate;
+    private LocalDate reportDate;
     private Double latitude;
     private Double longitude;
     private String address;

@@ -25,7 +25,7 @@ public class FoundItem extends BaseTimeEntity {
     private String name;
 
     private String description;
-    private LocalDate foundDate;
+    private LocalDate reportDate;
 
     // Location 필드 통합
     private Double latitude;  // 위도

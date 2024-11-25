@@ -15,7 +15,7 @@ public class FoundItemResponse {
     private Long userId;                  // 작성자 ID
     private String name;
     private String description;           // 설명
-    private LocalDate foundDate;          // 발견된 날짜
+    private LocalDate reportDate;          // 발견된 날짜
     private Double latitude;              // 위치 위도
     private Double longitude;             // 위치 경도
     private String address;               // 위치 주소

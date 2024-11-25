@@ -31,7 +31,7 @@ public class LostItem extends BaseTimeEntity {
     private String color;
     private String brand;
 
-    private LocalDate lostDate;
+    private LocalDate reportDate;
 
     @OneToOne
     @JoinColumn(name = "reward_id")
