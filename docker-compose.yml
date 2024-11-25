@@ -9,7 +9,7 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5" # Limit to 50% of one core
+          cpus: "0.3" # Limit to 30% of one core
           memory: 512m # Limit memory to 512MB
 
   kafka:
@@ -31,8 +31,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.5" # Limit to 1.5 CPUs
-          memory: 2g # Limit memory to 2GB
+          cpus: "0.6" # Limit to 60% of one core
+          memory: 1g # Limit memory to 1GB
 
   app:
     build:
@@ -57,5 +57,5 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "1.0" # Limit to 1 CPU
+          cpus: "0.5" # Limit to 50% of one core
           memory: 2g # Limit memory to 1.5GB
