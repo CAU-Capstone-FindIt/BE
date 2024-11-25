@@ -86,23 +86,21 @@ public class ItemController {
         return ResponseEntity.ok(foundItems);
     }
 
-    @Operation(summary = "모든 습득물 조회", description = "모든 습득물 항목을 조회합니다.")
+    @Operation(summary = "모든 습득물 조회", description = "모든 습득물 항목을 댓글과 함께 조회합니다.")
     @GetMapping("/found/all")
-    public ResponseEntity<List<FoundItemResponse>> getAllFoundItems() {
-        List<FoundItemResponse> foundItems = itemService.getAllFoundItems().stream()
-                .map(itemService::toFoundItemResponse)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<FoundItemResponse>> getAllFoundItemsWithDetails() {
+        List<FoundItemResponse> foundItems = itemService.getAllFoundItemsWithDetails();
         return ResponseEntity.ok(foundItems);
     }
 
-    @Operation(summary = "모든 분실물 조회", description = "모든 습득물 항목을 조회합니다.")
+
+    @Operation(summary = "모든 분실물 조회", description = "모든 분실물 항목을 댓글과 함께 조회합니다.")
     @GetMapping("/lost/all")
-    public ResponseEntity<List<LostItemResponse>> getAllLostItems() {
-        List<LostItemResponse> lostItems = itemService.getAllLostItems().stream()
-                .map(itemService::toLostItemResponse)
-                .collect(Collectors.toList());
+    public ResponseEntity<List<LostItemResponse>> getAllLostItemsWithDetails() {
+        List<LostItemResponse> lostItems = itemService.getAllLostItemsWithDetails();
         return ResponseEntity.ok(lostItems);
     }
+
 
     @Operation(summary = "분실물 댓글 등록", description = "분실물에 댓글을 등록합니다.")
     @PostMapping("/lost/comment")

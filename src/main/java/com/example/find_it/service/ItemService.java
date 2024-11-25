@@ -132,10 +132,7 @@ public class ItemService {
             comment.setParentComment(parentComment);
         }
 
-        // Save the comment
         FoundItemComment savedComment = foundItemCommentRepository.save(comment);
-
-        // Convert to response DTO and return
         return toFoundItemCommentResponse(savedComment);
     }
 
@@ -437,4 +434,17 @@ public class ItemService {
         response.setModifiedDate(comment.getModifiedDate());
         return response;
     }
+
+    public List<FoundItemResponse> getAllFoundItemsWithDetails() {
+        return foundItemRepository.findAll().stream()
+                .map(this::toFoundItemResponseWithComments) // 댓글 포함된 상세 응답으로 변환
+                .collect(Collectors.toList());
+    }
+
+    public List<LostItemResponse> getAllLostItemsWithDetails() {
+        return lostItemRepository.findAll().stream()
+                .map(this::toLostItemResponseWithComments) // 댓글 포함된 상세 응답으로 변환
+                .collect(Collectors.toList());
+    }
+
 }
