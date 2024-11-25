@@ -2,7 +2,7 @@ spring:
   profiles:
     active: ${SPRING_PROFILES_ACTIVE} # 프로파일 설정
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
+    url: ${SPRING_DATASOURCE_URL}?serverTimezone=Asia/Seoul
     username: ${database-username}
     password: ${database-password}
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -21,6 +21,8 @@ spring:
       org.hibernate.SQL: info
       org.apache.kafka: warn  # Kafka 관련 로그를 WARN으로 설정
       org.springframework.kafka: warn
+  jackson:
+    time-zone: Asia/Seoul
 
 # 파일 업로드 설정
 spring.servlet.multipart:
