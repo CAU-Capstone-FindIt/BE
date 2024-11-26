@@ -67,3 +67,13 @@ kafka:
 spring.kafka.listener:
   ack-mode: batch # 배치 단위로 메시지 확인
 
+aws:
+  credentials:
+    access-key: ${AWS_ACCESS_KEY} # 환경 변수로 설정
+    secret-key: ${AWS_SECRET_KEY} # 환경 변수로 설정
+  region: ap-northeast-2 # 한국 리전 설정
+  s3:
+    bucket: capstonem # S3 버킷 이름
+    folder: uploads # 업로드 폴더 경로
+
+

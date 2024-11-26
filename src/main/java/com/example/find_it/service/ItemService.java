@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -28,10 +29,10 @@ public class ItemService {
     private final RewardRepository rewardRepository;
     private final FoundItemCommentRepository foundItemCommentRepository;
     private final LostItemCommentRepository lostItemCommentRepository;
+    private final S3Service s3Service;
 
     @Transactional
-    public void registerLostItem(LostItemRequest lostItemDTO, Member member) {
-
+    public void registerLostItem(LostItemRequest lostItemDTO, Member member) throws IOException {
         // Check if member has enough points if reward is requested
         if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
             if (member.getPoints() < lostItemDTO.getRewardAmount()) {
@@ -53,6 +54,13 @@ public class ItemService {
             reward = rewardRepository.save(reward);
         }
 
+        // S3 이미지 업로드 처리
+        String imageUrl = null;
+        if (lostItemDTO.getImage() != null && !lostItemDTO.getImage().isEmpty()) {
+            imageUrl = s3Service.uploadFile(lostItemDTO.getImage(), "lost-items");
+        }
+
+        // LostItem 생성 및 저장
         LostItem lostItem = new LostItem();
         lostItem.setDescription(lostItemDTO.getDescription());
         lostItem.setName(lostItemDTO.getName());
@@ -66,28 +74,37 @@ public class ItemService {
         lostItem.setMember(member);
         lostItem.setReward(reward);
         lostItem.setStatus(lostItemDTO.getStatus());
-        lostItem.setImage(lostItemDTO.getImage());
+        lostItem.setImage(imageUrl); // S3 이미지 URL 저장
 
         lostItemRepository.save(lostItem);
     }
 
-    public void reportFoundItem(FoundItemRequest foundItemDTO, Member member) {
 
+    @Transactional
+    public void reportFoundItem(FoundItemRequest foundItemDTO, Member member) throws IOException {
+        // S3 이미지 업로드 처리
+        String imageUrl = null;
+        if (foundItemDTO.getImage() != null && !foundItemDTO.getImage().isEmpty()) {
+            imageUrl = s3Service.uploadFile(foundItemDTO.getImage(), "found-items");
+        }
+
+        // FoundItem 생성 및 저장
         FoundItem foundItem = new FoundItem();
         foundItem.setName(foundItemDTO.getName());            // name 필드 추가 처리
         foundItem.setDescription(foundItemDTO.getDescription());
         foundItem.setReportDate(foundItemDTO.getReportDate());
-        foundItem.setLatitude(foundItemDTO.getLatitude()); // 위도
+        foundItem.setLatitude(foundItemDTO.getLatitude());    // 위도
         foundItem.setLongitude(foundItemDTO.getLongitude()); // 경도
-        foundItem.setAddress(foundItemDTO.getAddress()); // 주소
+        foundItem.setAddress(foundItemDTO.getAddress());      // 주소
         foundItem.setMember(member);
-        foundItem.setImage(foundItemDTO.getImage());
-        foundItem.setCategory(foundItemDTO.getCategory());  // Category Enum으로 설정
+        foundItem.setImage(imageUrl);                         // S3 이미지 URL 저장
+        foundItem.setCategory(foundItemDTO.getCategory());    // Category Enum으로 설정
         foundItem.setColor(foundItemDTO.getColor());
         foundItem.setBrand(foundItemDTO.getBrand());
 
         foundItemRepository.save(foundItem);
     }
+
 
     private Reward retrieveReward(Long rewardId) {
         if (rewardId != null) {

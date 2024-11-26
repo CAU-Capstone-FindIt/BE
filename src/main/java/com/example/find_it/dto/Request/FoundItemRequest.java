@@ -3,6 +3,7 @@ package com.example.find_it.dto.Request;
 import com.example.find_it.domain.Category;
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDate;
 
@@ -15,7 +16,7 @@ public class FoundItemRequest {
     private Double latitude;
     private Double longitude;
     private String address;
-    private String image;
+    private MultipartFile image;
 
     // Additional fields to match the UI
     private Category category;

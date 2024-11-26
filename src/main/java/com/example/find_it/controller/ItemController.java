@@ -19,6 +19,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,34 +38,24 @@ public class ItemController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> registerLostItem(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Parameter(description = "분실물 정보") @RequestBody LostItemRequest lostItemRequest) {
+            @ModelAttribute LostItemRequest lostItemRequest) throws IOException {
 
-        // Fetch the authenticated member using userDetails
         Member member = memberService.getMemberByPrincipal(userDetails);
-
-        // Pass the LostItemRequest and Member to the service
         itemService.registerLostItem(lostItemRequest, member);
-
         return ResponseEntity.ok("Lost item registered successfully.");
     }
-
 
     @Operation(summary = "습득물 등록", description = "새로운 습득물을 등록합니다.")
     @PostMapping("/found/report")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> reportFoundItem(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Parameter(description = "습득물 정보") @RequestBody FoundItemRequest foundItemRequest) {
+            @ModelAttribute FoundItemRequest foundItemRequest) throws IOException {
 
-        // Fetch the authenticated member using userDetails
         Member member = memberService.getMemberByPrincipal(userDetails);
-
-        // Pass the FoundItemRequest and Member to the service
         itemService.reportFoundItem(foundItemRequest, member);
-
         return ResponseEntity.ok("Found item reported successfully.");
     }
-
 
     @Operation(summary = "분실물 검색", description = "설명을 기반으로 분실물을 검색합니다.")
     @GetMapping("/lost/search")
