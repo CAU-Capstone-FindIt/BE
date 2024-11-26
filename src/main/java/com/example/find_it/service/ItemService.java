@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -54,11 +55,12 @@ public class ItemService {
             reward = rewardRepository.save(reward);
         }
 
-        // S3 이미지 업로드 처리
         String imageUrl = null;
         if (lostItemDTO.getImage() != null && !lostItemDTO.getImage().isEmpty()) {
-            imageUrl = s3Service.uploadFile(lostItemDTO.getImage(), "lost-items");
+            String fileName = "lost-item-" + System.currentTimeMillis() + ".jpg"; // 고유한 파일 이름 생성
+            imageUrl = s3Service.uploadFile(lostItemDTO.getImage(), "lost-items", fileName); // S3에 업로드
         }
+
 
         // LostItem 생성 및 저장
         LostItem lostItem = new LostItem();
@@ -85,7 +87,8 @@ public class ItemService {
         // S3 이미지 업로드 처리
         String imageUrl = null;
         if (foundItemDTO.getImage() != null && !foundItemDTO.getImage().isEmpty()) {
-            imageUrl = s3Service.uploadFile(foundItemDTO.getImage(), "found-items");
+            String fileName = "found-item-" + System.currentTimeMillis() + ".jpg"; // 고유한 파일 이름 생성
+            imageUrl = s3Service.uploadFile(foundItemDTO.getImage(), "found-items", fileName); // S3에 업로드
         }
 
         // FoundItem 생성 및 저장

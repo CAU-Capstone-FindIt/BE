@@ -24,7 +24,7 @@ public class LostItemRequest {
     private Integer rewardAmount;  // Changed from rewardId to rewardAmount
     private LostItemStatus status;
 
-    private MultipartFile image;
+    private String image;
 }
 
 

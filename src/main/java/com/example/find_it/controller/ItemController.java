@@ -38,7 +38,7 @@ public class ItemController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> registerLostItem(
             @AuthenticationPrincipal UserDetails userDetails,
-            @ModelAttribute LostItemRequest lostItemRequest) throws IOException {
+            @RequestBody LostItemRequest lostItemRequest) throws IOException {
 
         Member member = memberService.getMemberByPrincipal(userDetails);
         itemService.registerLostItem(lostItemRequest, member);
@@ -50,7 +50,7 @@ public class ItemController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> reportFoundItem(
             @AuthenticationPrincipal UserDetails userDetails,
-            @ModelAttribute FoundItemRequest foundItemRequest) throws IOException {
+            @RequestBody FoundItemRequest foundItemRequest) throws IOException {
 
         Member member = memberService.getMemberByPrincipal(userDetails);
         itemService.reportFoundItem(foundItemRequest, member);
