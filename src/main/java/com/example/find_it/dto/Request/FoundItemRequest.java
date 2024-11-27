@@ -1,6 +1,7 @@
 package com.example.find_it.dto.Request;
 
 import com.example.find_it.domain.Category;
+import com.example.find_it.domain.FoundItemStatus;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,6 +18,7 @@ public class FoundItemRequest {
     private Double longitude;
     private String address;
     private String image;
+    private FoundItemStatus status;
 
     // Additional fields to match the UI
     private Category category;

@@ -1,6 +1,6 @@
 package com.example.find_it.domain;
 
-public enum LostItemStatus {
+public enum FoundItemStatus {
     REGISTERED,
     RETURNED
 }

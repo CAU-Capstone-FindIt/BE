@@ -42,34 +42,36 @@ public class RewardService {
 
     // 보상 지급
     @Transactional
-    public void payReward(Long rewardId, Long foundUserId) {
+    public void payReward(Long rewardId, Long foundMemberId) {
+        // Reward 조회
         Reward reward = rewardRepository.findById(rewardId)
                 .orElseThrow(() -> new IllegalArgumentException("Reward not found"));
 
-        // 보상 지급 상태 확인
+        // 상태 확인
         if (!reward.getStatus().equals(RewardStatus.PENDING)) {
             throw new IllegalStateException("Reward is not in a payable state.");
         }
 
-        // 보상 수령자 (습득자) 확인
-        Member foundUser = userRepository.findById(foundUserId)
-                .orElseThrow(() -> new IllegalArgumentException("Found user not found"));
+        // Found Member 조회
+        Member foundMember = userRepository.findById(foundMemberId)
+                .orElseThrow(() -> new IllegalArgumentException("Found member not found"));
 
-        // 보상 상태를 'PAID'로 설정하여 지급 완료
+        // 상태 업데이트 및 보상 처리
         reward.setStatus(RewardStatus.PAID);
-        reward.setFoundUser(foundUser); // 습득자를 보상 객체에 설정
+        reward.setFoundUser(foundMember);
         rewardRepository.save(reward);
 
-        // 습득자의 포인트 업데이트 및 거래 내역 저장
-        foundUser.adjustPoints(reward.getAmount()); // 포인트 추가 메서드 사용
-        userRepository.save(foundUser);
+        // Found Member 포인트 지급
+        foundMember.adjustPoints(reward.getAmount());
+        userRepository.save(foundMember);
 
+        // 거래 내역 기록
         PointTransaction transaction = PointTransaction.builder()
                 .points(reward.getAmount())
-                .member(foundUser)
-                .description("보상 지급") // 거래 설명 추가 가능
+                .member(foundMember)
+                .description("Reward payment for returning item")
                 .build();
-
         pointTransactionRepository.save(transaction);
     }
+
 }

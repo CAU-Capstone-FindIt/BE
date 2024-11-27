@@ -31,6 +31,7 @@ public class ItemService {
     private final FoundItemCommentRepository foundItemCommentRepository;
     private final LostItemCommentRepository lostItemCommentRepository;
     private final S3Service s3Service;
+    private final RewardService rewardService;
 
     @Transactional
     public void registerLostItem(LostItemRequest lostItemDTO, Member member) throws IOException {
@@ -467,4 +468,53 @@ public class ItemService {
                 .collect(Collectors.toList());
     }
 
+    @Transactional
+    public void updateFoundItemStatus(Long foundItemId, Member member) {
+        // FoundItem을 ID로 조회
+        FoundItem foundItem = foundItemRepository.findById(foundItemId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid FoundItem ID"));
+
+        // 요청한 회원이 해당 FoundItem의 소유자인지 확인
+        if (!foundItem.getMember().equals(member)) {
+            throw new SecurityException("You are not authorized to update this item's status.");
+        }
+
+        // 상태를 REGISTERED에서 RETURNED로 변경
+        if (foundItem.getStatus() == FoundItemStatus.REGISTERED) {
+            foundItem.setStatus(FoundItemStatus.RETURNED);
+        } else {
+            throw new IllegalStateException("Status can only be updated from REGISTERED to RETURNED.");
+        }
+
+        // 변경 사항 저장
+        foundItemRepository.save(foundItem);
+    }
+
+    @Transactional
+    public void updateLostItemStatusAndReward(Long lostItemId, Member foundMember) {
+        // LostItem 조회
+        LostItem lostItem = lostItemRepository.findById(lostItemId)
+                .orElseThrow(() -> new IllegalArgumentException("Invalid LostItem ID"));
+
+        // 상태 확인 및 변경
+        if (lostItem.getStatus() == LostItemStatus.REGISTERED) {
+            lostItem.setStatus(LostItemStatus.RETURNED);
+        } else {
+            throw new IllegalStateException("Status can only be updated from REGISTERED to RETURNED.");
+        }
+
+        // 보상 처리
+        Reward reward = lostItem.getReward();
+        if (reward != null) {
+            if (reward.getStatus() != RewardStatus.PENDING) {
+                throw new IllegalStateException("Reward is not in a payable state.");
+            }
+
+            // 보상 지급
+            rewardService.payReward(reward.getId(), foundMember.getId());
+        }
+
+        // 변경 사항 저장
+        lostItemRepository.save(lostItem);
+    }
 }

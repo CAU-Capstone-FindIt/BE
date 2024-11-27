@@ -235,4 +235,34 @@ public class ItemController {
 
         return ResponseEntity.ok(results);
     }
+
+    @Operation(summary = "습득물 찾음", description = "습득물의 상태를 REGISTERED에서 RETURNED로 변경합니다.")
+    @PatchMapping("/found/{foundItemId}/status")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> updateFoundItemStatus(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Parameter(description = "습득물 ID") @PathVariable Long foundItemId) {
+        // Fetch the authenticated member
+        Member member = memberService.getMemberByPrincipal(userDetails);
+
+        // Update the status in the service layer
+        itemService.updateFoundItemStatus(foundItemId, member);
+
+        return ResponseEntity.ok("Found item status updated successfully.");
+    }
+
+    @Operation(summary = "분실물 상태 변경 및 보상 지급", description = "분실물의 상태를 REGISTERED에서 RETURNED로 변경하고, 보상을 지급합니다.")
+    @PatchMapping("/lost/{lostItemId}/status")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> updateLostItemStatus(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Parameter(description = "분실물 ID") @PathVariable Long lostItemId) {
+        // 인증된 사용자 조회
+        Member member = memberService.getMemberByPrincipal(userDetails);
+
+        // 상태 변경 및 보상 지급 처리
+        itemService.updateLostItemStatusAndReward(lostItemId, member);
+
+        return ResponseEntity.ok("Lost item status updated and reward processed successfully.");
+    }
 }
