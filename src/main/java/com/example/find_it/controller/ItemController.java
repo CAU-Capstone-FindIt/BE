@@ -237,41 +237,34 @@ public class ItemController {
         return ResponseEntity.ok(results);
     }
 
-    @Operation(summary = "습득물 찾음", description = "습득물의 상태를 REGISTERED에서 RETURNED로 변경합니다.")
-    @PatchMapping("/found/{foundItemId}/status")
+    @Operation(summary = "습득물 상태 변경", description = "습득물의 상태를 REGISTERED에서 RETURNED로 변경합니다.")
+    @PutMapping("/found/{foundItemId}/status")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> updateFoundItemStatus(
             @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long foundItemId,
-            @RequestBody Map<String, String> request) {
-        // Fetch the authenticated member
+            @PathVariable Long foundItemId) {
+        // 사용자 인증 정보로 Member 객체 조회
         Member member = memberService.getMemberByPrincipal(userDetails);
 
-        // Get the status from the request body
-        String status = request.get("status");
-        if (!"RETURNED".equals(status)) {
-            throw new IllegalArgumentException("Invalid status. Only 'RETURNED' is allowed.");
-        }
-
-        // Update the status in the service layer
+        // 상태 변경 처리
         itemService.updateFoundItemStatus(foundItemId, member);
 
         return ResponseEntity.ok("Found item status updated successfully.");
     }
 
-
-    @Operation(summary = "분실물 상태 변경 및 보상 지급", description = "분실물의 상태를 REGISTERED에서 RETURNED로 변경하고, 보상을 지급합니다.")
-    @PatchMapping("/lost/{lostItemId}/status")
+    @Operation(summary = "분실물 상태 변경", description = "분실물 상태를 REGISTERED에서 RETURNED로 변경합니다.")
+    @PutMapping("/lost/{lostItemId}/status")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> updateLostItemStatus(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Parameter(description = "분실물 ID") @PathVariable Long lostItemId) {
-        // 인증된 사용자 조회
+            @PathVariable Long lostItemId) {
+        // 사용자 인증 정보로 Member 객체 조회
         Member member = memberService.getMemberByPrincipal(userDetails);
 
-        // 상태 변경 및 보상 지급 처리
-        itemService.updateLostItemStatusAndReward(lostItemId, member);
+        // 상태 변경 처리
+        itemService.updateLostItemStatus(lostItemId, member);
 
-        return ResponseEntity.ok("Lost item status updated and reward processed successfully.");
+        return ResponseEntity.ok("Lost item status updated successfully.");
     }
+
 }

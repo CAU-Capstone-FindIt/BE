@@ -473,16 +473,16 @@ public class ItemService {
 
     @Transactional
     public void updateFoundItemStatus(Long foundItemId, Member member) {
-        // FoundItem을 ID로 조회
+        // FoundItem 조회
         FoundItem foundItem = foundItemRepository.findById(foundItemId)
                 .orElseThrow(() -> new IllegalArgumentException("Invalid FoundItem ID"));
 
-        // 요청한 회원이 해당 FoundItem의 소유자인지 확인
+        // 소유자 검증
         if (!foundItem.getMember().equals(member)) {
             throw new SecurityException("You are not authorized to update this item's status.");
         }
 
-        // 상태 변경 (컨트롤러에서 이미 상태 검증됨)
+        // 상태 변경
         foundItem.setStatus(FoundItemStatus.RETURNED);
 
         // 변경 사항 저장
@@ -490,32 +490,21 @@ public class ItemService {
     }
 
     @Transactional
-    public void updateLostItemStatusAndReward(Long lostItemId, Member foundMember) {
+    public void updateLostItemStatus(Long lostItemId, Member member) {
         // LostItem 조회
         LostItem lostItem = lostItemRepository.findById(lostItemId)
-                .orElseThrow(() -> new CustomException(ErrorCode.LOST_ITEM_NOT_FOUND));
+                .orElseThrow(() -> new IllegalArgumentException("Invalid LostItem ID"));
 
-        // 상태 확인 및 변경
-        if (lostItem.getStatus() == LostItemStatus.REGISTERED) {
-            lostItem.setStatus(LostItemStatus.RETURNED);
-        } else {
-            throw new CustomException(ErrorCode.INVALID_LOST_ITEM_STATUS);
+        // 상태 검증 및 변경
+        if (lostItem.getStatus() != LostItemStatus.REGISTERED) {
+            throw new IllegalArgumentException("Lost item is not in a modifiable state.");
         }
-
-        // 보상 처리
-        Reward reward = lostItem.getReward();
-        if (reward != null) {
-            if (reward.getStatus() != RewardStatus.PENDING) {
-                throw new CustomException(ErrorCode.INVALID_REWARD_STATUS);
-            }
-
-            // 보상 지급
-            rewardService.payReward(reward.getId(), foundMember.getId());
-        }
+        lostItem.setStatus(LostItemStatus.RETURNED);
 
         // 변경 사항 저장
         lostItemRepository.save(lostItem);
     }
+
 
 
 }
