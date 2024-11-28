@@ -13,8 +13,8 @@ public class KafkaProducerService {
         this.kafkaTemplate = kafkaTemplate;
     }
 
-    public void sendMessage(String topic, Long partitionKey, PersonalMessage message) {
-        kafkaTemplate.send(topic, partitionKey, message);
+    public void sendMessage(String topic, Long key, PersonalMessage message) {
+        kafkaTemplate.send(topic, key, message);
     }
 }
 
