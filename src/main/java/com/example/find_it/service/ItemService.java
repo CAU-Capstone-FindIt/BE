@@ -347,6 +347,7 @@ public class ItemService {
         response.setAddress(lostItem.getAddress()); // 주소
         response.setRewardId(lostItem.getReward() != null ? lostItem.getReward().getId() : null);
         response.setStatus(lostItem.getStatus());
+        response.setImage(lostItem.getImage());
         response.setCreatedDate(lostItem.getCreatedDate());
         response.setModifiedDate(lostItem.getModifiedDate());
 
@@ -409,6 +410,7 @@ public class ItemService {
         response.setCategory(foundItem.getCategory());
         response.setColor(foundItem.getColor());
         response.setBrand(foundItem.getBrand());
+        response.setStatus(foundItem.getStatus());
         response.setCreatedDate(foundItem.getCreatedDate());
         response.setModifiedDate(foundItem.getModifiedDate());
 
