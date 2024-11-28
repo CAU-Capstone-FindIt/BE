@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Message API", description = "Kafka를 활용한 개인 메시지 송수신 API")
+@Tag(name = "Message API", description = "Kafka를 활용하여 개인 메시지를 송수신하기 위한 API입니다. 주어진 사용자의 메시지를 주고받고, 대화 내역을 조회할 수 있습니다.")
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
@@ -26,13 +26,13 @@ public class MessageController {
 
     @Operation(
             summary = "개인 메시지 전송",
-            description = "지정된 수신자 ID로 개인 메시지를 전송합니다."
+            description = "지정된 수신자(receiverId)에게 메시지를 전송합니다. 송신자(senderId)와 메시지 내용을 입력하세요."
     )
     @PostMapping("/send")
     public ResponseEntity<String> sendMessage(
-            @Parameter(description = "메시지를 보낸 사용자 ID", required = true) @RequestParam Long senderId,
-            @Parameter(description = "메시지를 받는 사용자 ID", required = true) @RequestParam Long receiverId,
-            @Parameter(description = "메시지 내용", required = true) @RequestBody String message
+            @Parameter(description = "메시지를 보낸 사용자 ID (송신자)", required = true) @RequestParam Long senderId,
+            @Parameter(description = "메시지를 받는 사용자 ID (수신자)", required = true) @RequestParam Long receiverId,
+            @Parameter(description = "메시지의 내용. 텍스트 형식이어야 합니다.", required = true) @RequestBody String message
     ) {
         String topic = "private-message-" + receiverId;
         kafkaProducerService.sendMessage(topic, new PersonalMessage(senderId, receiverId, message));
@@ -41,12 +41,12 @@ public class MessageController {
 
     @Operation(
             summary = "개인 메시지 수신",
-            description = "지정된 수신자 ID에 도착한 메시지 목록을 반환합니다. 보낸 사람 ID를 선택적으로 필터링할 수 있습니다."
+            description = "수신자(receiverId)가 받은 모든 메시지의 목록을 반환합니다. 선택적으로 특정 송신자(senderId)로부터 받은 메시지만 필터링할 수 있습니다."
     )
     @GetMapping("/receive")
     public ResponseEntity<List<PersonalMessage>> receiveMessages(
-            @Parameter(description = "메시지를 받는 사용자 ID", required = true) @RequestParam Long receiverId,
-            @Parameter(description = "메시지를 보낸 사용자 ID (선택)", required = false) @RequestParam(required = false) Long senderId
+            @Parameter(description = "메시지를 받는 사용자 ID (수신자)", required = true) @RequestParam Long receiverId,
+            @Parameter(description = "특정 송신자의 메시지만 필터링하려면 송신자 ID를 입력하세요. (선택적 필드)", required = false) @RequestParam(required = false) Long senderId
     ) {
         String topic = "private-message-" + receiverId;
         List<PersonalMessage> messages = kafkaConsumerService.getMessages(topic, senderId);
@@ -55,11 +55,11 @@ public class MessageController {
 
     @Operation(
             summary = "상대방별 최신 메시지 조회",
-            description = "본인(receiverId)에게 온 메시지 중 상대방별 최신 메시지를 반환합니다."
+            description = "수신자(receiverId)에게 온 모든 메시지 중, 각 상대방별 최신 메시지 하나씩을 반환합니다."
     )
     @GetMapping("/latest-messages")
     public ResponseEntity<List<PersonalMessage>> getLatestMessages(
-            @Parameter(description = "메시지를 받는 사용자 ID", required = true) @RequestParam Long receiverId
+            @Parameter(description = "메시지를 받는 사용자 ID (수신자)", required = true) @RequestParam Long receiverId
     ) {
         String topic = "private-message-" + receiverId;
         List<PersonalMessage> messages = kafkaConsumerService.getLatestMessages(topic);
@@ -67,26 +67,16 @@ public class MessageController {
     }
 
     @Operation(
-            summary = "특정 상대방과의 전체 메시지 내역 조회",
-            description = "본인(receiverId)과 특정 상대방(senderId)의 모든 메시지 내역을 반환합니다."
+            summary = "두 사용자 간 대화 내역 조회",
+            description = "두 사용자(userA와 userB) 간의 모든 대화 메시지를 조회합니다."
     )
-    @GetMapping("/conversation")
-    public ResponseEntity<List<PersonalMessage>> getConversation(
-            @Parameter(description = "메시지를 받는 사용자 ID", required = true) @RequestParam Long receiverId,
-            @Parameter(description = "메시지를 보낸 사용자 ID", required = true) @RequestParam Long senderId
-    ) {
-        String topic = "private-message-" + receiverId;
-        List<PersonalMessage> messages = kafkaConsumerService.getConversation(topic, senderId);
-        return ResponseEntity.ok(messages);
-    }
-
     @GetMapping("/conversation/between")
     public ResponseEntity<List<PersonalMessage>> getConversationBetween(
-            @RequestParam Long userA,
-            @RequestParam Long userB
+            @Parameter(description = "대화를 조회할 첫 번째 사용자 ID", required = true) @RequestParam Long userA,
+            @Parameter(description = "대화를 조회할 두 번째 사용자 ID", required = true) @RequestParam Long userB
     ) {
         List<PersonalMessage> messages = kafkaConsumerService.getConversationForBoth(userA, userB);
         return ResponseEntity.ok(messages);
     }
-
 }
+
