@@ -21,6 +21,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -241,15 +242,23 @@ public class ItemController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> updateFoundItemStatus(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Parameter(description = "습득물 ID") @PathVariable Long foundItemId) {
+            @PathVariable Long foundItemId,
+            @RequestBody Map<String, String> request) {
         // Fetch the authenticated member
         Member member = memberService.getMemberByPrincipal(userDetails);
+
+        // Get the status from the request body
+        String status = request.get("status");
+        if (!"RETURNED".equals(status)) {
+            throw new IllegalArgumentException("Invalid status. Only 'RETURNED' is allowed.");
+        }
 
         // Update the status in the service layer
         itemService.updateFoundItemStatus(foundItemId, member);
 
         return ResponseEntity.ok("Found item status updated successfully.");
     }
+
 
     @Operation(summary = "분실물 상태 변경 및 보상 지급", description = "분실물의 상태를 REGISTERED에서 RETURNED로 변경하고, 보상을 지급합니다.")
     @PatchMapping("/lost/{lostItemId}/status")

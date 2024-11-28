@@ -15,7 +15,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.util.Base64;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,17 +34,18 @@ public class ItemService {
 
     @Transactional
     public void registerLostItem(LostItemRequest lostItemDTO, Member member) throws IOException {
-        // Check if member has enough points if reward is requested
+        // 보상 포인트 확인
         if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
             if (member.getPoints() < lostItemDTO.getRewardAmount()) {
                 throw new CustomException(ErrorCode.INSUFFICIENT_POINTS);
             }
-            // Deduct points from member
+
+            // 포인트 차감
             member.adjustPoints(-lostItemDTO.getRewardAmount());
             memberRepository.save(member);
         }
 
-        // Create reward if amount is specified
+        // 보상 생성
         Reward reward = null;
         if (lostItemDTO.getRewardAmount() != null && lostItemDTO.getRewardAmount() > 0) {
             reward = new Reward();
@@ -56,12 +56,12 @@ public class ItemService {
             reward = rewardRepository.save(reward);
         }
 
+        // 이미지 업로드 처리
         String imageUrl = null;
         if (lostItemDTO.getImage() != null && !lostItemDTO.getImage().isEmpty()) {
-            String fileName = "lost-item-" + System.currentTimeMillis() + ".jpg"; // 고유한 파일 이름 생성
-            imageUrl = s3Service.uploadFile(lostItemDTO.getImage(), "lost-items", fileName); // S3에 업로드
+            String fileName = "lost-item-" + System.currentTimeMillis() + ".jpg";
+            imageUrl = s3Service.uploadFile(lostItemDTO.getImage(), "lost-items", fileName);
         }
-
 
         // LostItem 생성 및 저장
         LostItem lostItem = new LostItem();
@@ -71,16 +71,17 @@ public class ItemService {
         lostItem.setColor(lostItemDTO.getColor());
         lostItem.setBrand(lostItemDTO.getBrand());
         lostItem.setReportDate(lostItemDTO.getReportDate());
-        lostItem.setLatitude(lostItemDTO.getLatitude()); // 위도
-        lostItem.setLongitude(lostItemDTO.getLongitude()); // 경도
-        lostItem.setAddress(lostItemDTO.getAddress()); // 주소
+        lostItem.setLatitude(lostItemDTO.getLatitude());
+        lostItem.setLongitude(lostItemDTO.getLongitude());
+        lostItem.setAddress(lostItemDTO.getAddress());
         lostItem.setMember(member);
         lostItem.setReward(reward);
         lostItem.setStatus(lostItemDTO.getStatus());
-        lostItem.setImage(imageUrl); // S3 이미지 URL 저장
+        lostItem.setImage(imageUrl);
 
         lostItemRepository.save(lostItem);
     }
+
 
 
     @Transactional
@@ -479,12 +480,8 @@ public class ItemService {
             throw new SecurityException("You are not authorized to update this item's status.");
         }
 
-        // 상태를 REGISTERED에서 RETURNED로 변경
-        if (foundItem.getStatus() == FoundItemStatus.REGISTERED) {
-            foundItem.setStatus(FoundItemStatus.RETURNED);
-        } else {
-            throw new IllegalStateException("Status can only be updated from REGISTERED to RETURNED.");
-        }
+        // 상태 변경 (컨트롤러에서 이미 상태 검증됨)
+        foundItem.setStatus(FoundItemStatus.RETURNED);
 
         // 변경 사항 저장
         foundItemRepository.save(foundItem);
@@ -494,20 +491,20 @@ public class ItemService {
     public void updateLostItemStatusAndReward(Long lostItemId, Member foundMember) {
         // LostItem 조회
         LostItem lostItem = lostItemRepository.findById(lostItemId)
-                .orElseThrow(() -> new IllegalArgumentException("Invalid LostItem ID"));
+                .orElseThrow(() -> new CustomException(ErrorCode.LOST_ITEM_NOT_FOUND));
 
         // 상태 확인 및 변경
         if (lostItem.getStatus() == LostItemStatus.REGISTERED) {
             lostItem.setStatus(LostItemStatus.RETURNED);
         } else {
-            throw new IllegalStateException("Status can only be updated from REGISTERED to RETURNED.");
+            throw new CustomException(ErrorCode.INVALID_LOST_ITEM_STATUS);
         }
 
         // 보상 처리
         Reward reward = lostItem.getReward();
         if (reward != null) {
             if (reward.getStatus() != RewardStatus.PENDING) {
-                throw new IllegalStateException("Reward is not in a payable state.");
+                throw new CustomException(ErrorCode.INVALID_REWARD_STATUS);
             }
 
             // 보상 지급
@@ -517,4 +514,6 @@ public class ItemService {
         // 변경 사항 저장
         lostItemRepository.save(lostItem);
     }
+
+
 }

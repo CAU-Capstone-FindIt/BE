@@ -1,6 +1,7 @@
 package com.example.find_it.dto.Response;
 
 import com.example.find_it.domain.Category;
+import com.example.find_it.domain.FoundItemStatus;
 import com.example.find_it.domain.LostItemStatus;
 import lombok.Getter;
 import lombok.Setter;
@@ -26,7 +27,7 @@ public class FoundItemResponse {
     private Category category;            // 카테고리
     private String color;                 // 색상
     private String brand;                 // 브랜드
-    private LostItemStatus status;    // 분실물 상태 (예: 'Lost', 'Found')
+    private FoundItemStatus status;    // 분실물 상태 (예: 'Lost', 'Found')
 
     // 생성 및 수정 시간
     private LocalDateTime createdDate;    // 생성 시간

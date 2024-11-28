@@ -21,7 +21,8 @@ public enum ErrorCode {
     NOT_AUTHORIZED(HttpStatus.FORBIDDEN, "item-004", "권한이 없습니다."),
     INSUFFICIENT_POINTS(HttpStatus.BAD_REQUEST, "item-005", "보상을 설정하기 위한 포인트가 부족합니다."),
     PARENT_COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "item-006", "부모 댓글을 찾을 수 없습니다."),
-    INVALID_REQUEST(HttpStatus.BAD_REQUEST, "item-007", "유효하지 않은 요청입니다."),
+    INVALID_LOST_ITEM_STATUS(HttpStatus.BAD_REQUEST, "item-007", "분실물 상태를 REGISTERED에서 RETURNED로만 변경할 수 있습니다."),
+    INVALID_REWARD_STATUS(HttpStatus.BAD_REQUEST, "item-008", "보상을 지급할 수 없는 상태입니다."),
     INVALID_POINT_AMOUNT(HttpStatus.BAD_REQUEST, "point-001", "충전 금액은 1 이상이어야 합니다."),
 
     DUMMY_ERROR_CODE(HttpStatus.OK, "DUMMY", "DUMMY");
