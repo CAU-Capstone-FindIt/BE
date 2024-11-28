@@ -11,10 +11,12 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-@Tag(name = "Message API", description = "Kafka를 활용하여 개인 메시지를 송수신하기 위한 API입니다. 주어진 사용자의 메시지를 주고받고, 대화 내역을 조회할 수 있습니다.")
+@Tag(name = "메시지 API", description = "Kafka를 활용하여 개인 메시지를 송수신하기 위한 API입니다. 주어진 사용자의 메시지를 주고받고, 대화 내역을 조회할 수 있습니다.")
 @RestController
 @RequestMapping("/api/messages")
 public class MessageController {
+
+    private static final String SHARED_TOPIC = "chat-messages"; // 공유 토픽 이름
 
     private final KafkaProducerService kafkaProducerService;
     private final KafkaConsumerService kafkaConsumerService;
@@ -34,8 +36,8 @@ public class MessageController {
             @Parameter(description = "메시지를 받는 사용자 ID (수신자)", required = true) @RequestParam Long receiverId,
             @Parameter(description = "메시지의 내용. 텍스트 형식이어야 합니다.", required = true) @RequestBody String message
     ) {
-        String topic = "private-message-" + receiverId;
-        kafkaProducerService.sendMessage(topic, new PersonalMessage(senderId, receiverId, message));
+        // 공유 토픽으로 메시지 전송, receiverId를 파티션 키로 사용
+        kafkaProducerService.sendMessage(SHARED_TOPIC, receiverId, new PersonalMessage(senderId, receiverId, message));
         return ResponseEntity.ok("Message sent successfully.");
     }
 
@@ -48,8 +50,7 @@ public class MessageController {
             @Parameter(description = "메시지를 받는 사용자 ID (수신자)", required = true) @RequestParam Long receiverId,
             @Parameter(description = "특정 송신자의 메시지만 필터링하려면 송신자 ID를 입력하세요. (선택적 필드)", required = false) @RequestParam(required = false) Long senderId
     ) {
-        String topic = "private-message-" + receiverId;
-        List<PersonalMessage> messages = kafkaConsumerService.getMessages(topic, senderId);
+        List<PersonalMessage> messages = kafkaConsumerService.getMessages(SHARED_TOPIC, receiverId, senderId);
         return ResponseEntity.ok(messages);
     }
 
@@ -61,8 +62,7 @@ public class MessageController {
     public ResponseEntity<List<PersonalMessage>> getLatestMessages(
             @Parameter(description = "메시지를 받는 사용자 ID (수신자)", required = true) @RequestParam Long receiverId
     ) {
-        String topic = "private-message-" + receiverId;
-        List<PersonalMessage> messages = kafkaConsumerService.getLatestMessages(topic);
+        List<PersonalMessage> messages = kafkaConsumerService.getLatestMessages(SHARED_TOPIC, receiverId);
         return ResponseEntity.ok(messages);
     }
 
@@ -75,8 +75,7 @@ public class MessageController {
             @Parameter(description = "대화를 조회할 첫 번째 사용자 ID", required = true) @RequestParam Long userA,
             @Parameter(description = "대화를 조회할 두 번째 사용자 ID", required = true) @RequestParam Long userB
     ) {
-        List<PersonalMessage> messages = kafkaConsumerService.getConversationForBoth(userA, userB);
+        List<PersonalMessage> messages = kafkaConsumerService.getConversationForBoth(SHARED_TOPIC, userA, userB);
         return ResponseEntity.ok(messages);
     }
 }
-
