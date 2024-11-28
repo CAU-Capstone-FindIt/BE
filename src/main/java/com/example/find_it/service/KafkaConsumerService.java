@@ -5,9 +5,11 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 @Service
 public class KafkaConsumerService {
@@ -38,6 +40,30 @@ public class KafkaConsumerService {
         }
 
         return messages;
+    }
+
+    public List<PersonalMessage> getLatestMessages(String topic) {
+        List<PersonalMessage> messages = messageStore.getOrDefault(topic, List.of());
+        // 상대방(senderId)별 최신 메시지를 반환
+        return messages.stream()
+                .sorted((m1, m2) -> m2.getTimestamp().compareTo(m1.getTimestamp())) // 최신 메시지 기준으로 정렬
+                .collect(Collectors.toMap(
+                        PersonalMessage::getSenderId,  // SenderId 기준으로 그룹화
+                        message -> message,           // 최신 메시지만 유지
+                        (existing, replacement) -> existing // 기존 메시지 유지
+                ))
+                .values()
+                .stream()
+                .toList();
+    }
+
+    public List<PersonalMessage> getConversation(String topic, Long senderId) {
+        List<PersonalMessage> messages = messageStore.getOrDefault(topic, List.of());
+        // 상대방(senderId)와 주고받은 메시지 필터링
+        return messages.stream()
+                .filter(message -> senderId.equals(message.getSenderId()) || senderId.equals(message.getReceiverId()))
+                .sorted(Comparator.comparing(PersonalMessage::getTimestamp)) // 시간 순 정렬
+                .toList();
     }
 }
 

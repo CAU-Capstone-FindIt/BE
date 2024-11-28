@@ -1,7 +1,10 @@
 package com.example.find_it.service;
 
+import com.example.find_it.dto.PersonalMessage;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDateTime;
 
 @Service
 public class KafkaProducerService {
@@ -12,7 +15,11 @@ public class KafkaProducerService {
     }
 
     public void sendMessage(String topic, Object message) {
+        if (message instanceof PersonalMessage) {
+            ((PersonalMessage) message).setTimestamp(LocalDateTime.now());
+        }
         kafkaTemplate.send(topic, message);
         System.out.println("Sent message: " + message);
     }
+
 }

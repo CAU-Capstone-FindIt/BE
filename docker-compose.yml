@@ -43,7 +43,7 @@ services:
     environment:
       SPRING_PROFILES_ACTIVE: SECRET-KEY
       SPRING_DATASOURCE_URL: jdbc:mysql://capstone.cbweg6cmcjxe.ap-northeast-2.rds.amazonaws.com:3306/capstone
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
       FCM_CERTIFICATION: /app/config/firebaseworry.json
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       KAFKA_CONSUMER_GROUP_ID: my-custom-group

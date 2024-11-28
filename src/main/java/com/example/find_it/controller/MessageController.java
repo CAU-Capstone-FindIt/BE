@@ -52,4 +52,31 @@ public class MessageController {
         List<PersonalMessage> messages = kafkaConsumerService.getMessages(topic, senderId);
         return ResponseEntity.ok(messages);
     }
+
+    @Operation(
+            summary = "상대방별 최신 메시지 조회",
+            description = "본인(receiverId)에게 온 메시지 중 상대방별 최신 메시지를 반환합니다."
+    )
+    @GetMapping("/latest-messages")
+    public ResponseEntity<List<PersonalMessage>> getLatestMessages(
+            @Parameter(description = "메시지를 받는 사용자 ID", required = true) @RequestParam Long receiverId
+    ) {
+        String topic = "private-message-" + receiverId;
+        List<PersonalMessage> messages = kafkaConsumerService.getLatestMessages(topic);
+        return ResponseEntity.ok(messages);
+    }
+
+    @Operation(
+            summary = "특정 상대방과의 전체 메시지 내역 조회",
+            description = "본인(receiverId)과 특정 상대방(senderId)의 모든 메시지 내역을 반환합니다."
+    )
+    @GetMapping("/conversation")
+    public ResponseEntity<List<PersonalMessage>> getConversation(
+            @Parameter(description = "메시지를 받는 사용자 ID", required = true) @RequestParam Long receiverId,
+            @Parameter(description = "메시지를 보낸 사용자 ID", required = true) @RequestParam Long senderId
+    ) {
+        String topic = "private-message-" + receiverId;
+        List<PersonalMessage> messages = kafkaConsumerService.getConversation(topic, senderId);
+        return ResponseEntity.ok(messages);
+    }
 }
