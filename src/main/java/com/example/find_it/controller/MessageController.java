@@ -79,4 +79,14 @@ public class MessageController {
         List<PersonalMessage> messages = kafkaConsumerService.getConversation(topic, senderId);
         return ResponseEntity.ok(messages);
     }
+
+    @GetMapping("/conversation/between")
+    public ResponseEntity<List<PersonalMessage>> getConversationBetween(
+            @RequestParam Long userA,
+            @RequestParam Long userB
+    ) {
+        List<PersonalMessage> messages = kafkaConsumerService.getConversationForBoth(userA, userB);
+        return ResponseEntity.ok(messages);
+    }
+
 }

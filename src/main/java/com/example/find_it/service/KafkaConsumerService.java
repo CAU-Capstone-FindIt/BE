@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 public class KafkaConsumerService {
@@ -65,6 +66,20 @@ public class KafkaConsumerService {
                 .sorted(Comparator.comparing(PersonalMessage::getTimestamp)) // 시간 순 정렬
                 .toList();
     }
+
+    public List<PersonalMessage> getConversationForBoth(Long userA, Long userB) {
+        List<PersonalMessage> messagesForUserA = messageStore.getOrDefault("private-message-" + userA, List.of());
+        List<PersonalMessage> messagesForUserB = messageStore.getOrDefault("private-message-" + userB, List.of());
+
+        // 양방향 메시지 필터링
+        return Stream.concat(messagesForUserA.stream(), messagesForUserB.stream())
+                .filter(message -> (message.getSenderId().equals(userA) && message.getReceiverId().equals(userB)) ||
+                        (message.getSenderId().equals(userB) && message.getReceiverId().equals(userA)))
+                .sorted(Comparator.comparing(PersonalMessage::getTimestamp)) // 시간 순 정렬
+                .collect(Collectors.toList());
+    }
+
+
 }
 
 
