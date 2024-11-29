@@ -43,6 +43,11 @@ public class FoundItem extends BaseTimeEntity {
     private String color;
     private String brand;
 
+    private String revisedName;
+    private String revisedBrand;
+    private String revisedColor;
+    private String revisedAddress;
+
     @OneToMany(mappedBy = "foundItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FoundItemComment> comments = new ArrayList<>();
 }

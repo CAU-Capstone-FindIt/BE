@@ -45,6 +45,11 @@ public class LostItem extends BaseTimeEntity {
     private Double longitude; // 경도
     private String address;   // 주소
 
+    private String revisedName;
+    private String revisedBrand;
+    private String revisedColor;
+    private String revisedAddress;
+
     @OneToMany(mappedBy = "lostItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<LostItemComment> comments = new ArrayList<>();
 

@@ -74,6 +74,10 @@ public class ItemService {
         lostItem.setLatitude(lostItemDTO.getLatitude());
         lostItem.setLongitude(lostItemDTO.getLongitude());
         lostItem.setAddress(lostItemDTO.getAddress());
+        lostItem.setRevisedName(lostItemDTO.getRevisedName()); // 수정된 이름
+        lostItem.setRevisedBrand(lostItemDTO.getRevisedBrand()); // 수정된 브랜드
+        lostItem.setRevisedColor(lostItemDTO.getRevisedColor()); // 수정된 색상
+        lostItem.setRevisedAddress(lostItemDTO.getRevisedAddress()); // 수정된 주소
         lostItem.setMember(member);
         lostItem.setReward(reward);
         lostItem.setStatus(lostItemDTO.getStatus());
@@ -101,6 +105,10 @@ public class ItemService {
         foundItem.setLatitude(foundItemDTO.getLatitude());    // 위도
         foundItem.setLongitude(foundItemDTO.getLongitude()); // 경도
         foundItem.setAddress(foundItemDTO.getAddress());      // 주소
+        foundItem.setRevisedName(foundItemDTO.getRevisedName()); // 수정된 이름
+        foundItem.setRevisedBrand(foundItemDTO.getRevisedBrand()); // 수정된 브랜드
+        foundItem.setRevisedColor(foundItemDTO.getRevisedColor()); // 수정된 색상
+        foundItem.setRevisedAddress(foundItemDTO.getRevisedAddress()); // 수정된 주소
         foundItem.setMember(member);
         foundItem.setImage(imageUrl);                         // S3 이미지 URL 저장
         foundItem.setCategory(foundItemDTO.getCategory());    // Category Enum으로 설정
@@ -253,19 +261,20 @@ public class ItemService {
                 .filter(item -> {
                     int matchCount = 0;
 
-                    if (searchCriteria.getName() != null && searchCriteria.getName().equalsIgnoreCase(item.getName())) {
+                    // Search conditions using refined values only
+                    if (searchCriteria.getRevisedName() != null && searchCriteria.getRevisedName().equalsIgnoreCase(item.getRevisedName())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getBrand() != null && searchCriteria.getBrand().equalsIgnoreCase(item.getBrand())) {
+                    if (searchCriteria.getRevisedBrand() != null && searchCriteria.getRevisedBrand().equalsIgnoreCase(item.getRevisedBrand())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getColor() != null && searchCriteria.getColor().equalsIgnoreCase(item.getColor())) {
+                    if (searchCriteria.getRevisedColor() != null && searchCriteria.getRevisedColor().equalsIgnoreCase(item.getRevisedColor())) {
+                        matchCount++;
+                    }
+                    if (searchCriteria.getRevisedAddress() != null && searchCriteria.getRevisedAddress().equalsIgnoreCase(item.getRevisedAddress())) {
                         matchCount++;
                     }
                     if (searchCriteria.getCategory() != null && searchCriteria.getCategory() == item.getCategory()) {
-                        matchCount++;
-                    }
-                    if (searchCriteria.getAddress() != null && searchCriteria.getAddress().equalsIgnoreCase(item.getAddress())) {
                         matchCount++;
                     }
                     // Check if lostDate is between startDate and endDate
@@ -288,19 +297,20 @@ public class ItemService {
                 .filter(item -> {
                     int matchCount = 0;
 
-                    if (searchCriteria.getName() != null && searchCriteria.getName().equalsIgnoreCase(item.getName())) {
+                    // Search conditions using refined values only
+                    if (searchCriteria.getRevisedName() != null && searchCriteria.getRevisedName().equalsIgnoreCase(item.getRevisedName())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getBrand() != null && searchCriteria.getBrand().equalsIgnoreCase(item.getBrand())) {
+                    if (searchCriteria.getRevisedBrand() != null && searchCriteria.getRevisedBrand().equalsIgnoreCase(item.getRevisedBrand())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getColor() != null && searchCriteria.getColor().equalsIgnoreCase(item.getColor())) {
+                    if (searchCriteria.getRevisedColor() != null && searchCriteria.getRevisedColor().equalsIgnoreCase(item.getRevisedColor())) {
+                        matchCount++;
+                    }
+                    if (searchCriteria.getRevisedAddress() != null && searchCriteria.getRevisedAddress().equalsIgnoreCase(item.getRevisedAddress())) {
                         matchCount++;
                     }
                     if (searchCriteria.getCategory() != null && searchCriteria.getCategory() == item.getCategory()) {
-                        matchCount++;
-                    }
-                    if (searchCriteria.getAddress() != null && searchCriteria.getAddress().equalsIgnoreCase(item.getAddress())) {
                         matchCount++;
                     }
                     // Check if foundDate is between startDate and endDate
@@ -340,6 +350,10 @@ public class ItemService {
         response.setCategory(lostItem.getCategory());
         response.setColor(lostItem.getColor());
         response.setBrand(lostItem.getBrand());
+        response.setRevisedName(lostItem.getRevisedName()); // 추가
+        response.setRevisedBrand(lostItem.getRevisedBrand()); // 추가
+        response.setRevisedColor(lostItem.getRevisedColor()); // 추가
+        response.setRevisedAddress(lostItem.getRevisedAddress()); // 추가
         response.setDescription(lostItem.getDescription());
         response.setReportDate(lostItem.getReportDate());
         response.setLatitude(lostItem.getLatitude()); // 위도
@@ -410,6 +424,10 @@ public class ItemService {
         response.setCategory(foundItem.getCategory());
         response.setColor(foundItem.getColor());
         response.setBrand(foundItem.getBrand());
+        response.setRevisedName(foundItem.getRevisedName()); // 추가
+        response.setRevisedBrand(foundItem.getRevisedBrand()); // 추가
+        response.setRevisedColor(foundItem.getRevisedColor()); // 추가
+        response.setRevisedAddress(foundItem.getRevisedAddress()); // 추가
         response.setStatus(foundItem.getStatus());
         response.setCreatedDate(foundItem.getCreatedDate());
         response.setModifiedDate(foundItem.getModifiedDate());

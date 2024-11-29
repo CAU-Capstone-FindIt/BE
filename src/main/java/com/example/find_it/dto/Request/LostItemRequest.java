@@ -24,6 +24,11 @@ public class LostItemRequest {
     private Integer rewardAmount;  // Changed from rewardId to rewardAmount
     private LostItemStatus status;
 
+    private String revisedName;
+    private String revisedBrand;
+    private String revisedColor;
+    private String revisedAddress;
+
     private String image;
 }
 

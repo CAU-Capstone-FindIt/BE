@@ -26,6 +26,10 @@ public class LostItemResponse {
     private String address;           // 위치 주소
     private Long rewardId;            // 보상 관련 정보 (보상 ID)
     private LostItemStatus status;    // 분실물 상태 (예: 'Lost', 'Found')
+    private String revisedName;
+    private String revisedBrand;
+    private String revisedColor;
+    private String revisedAddress;
     private LocalDateTime createdDate;    // 생성일
     private LocalDateTime modifiedDate;   // 수정일
     private List<LostItemCommentResponse> comments; // 댓글 목록 추가

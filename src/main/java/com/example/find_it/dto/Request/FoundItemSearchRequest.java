@@ -10,11 +10,11 @@ import java.time.LocalDate;
 @Getter
 @Setter
 public class FoundItemSearchRequest {
-    private String name;                 // 습득물 이름
-    private String brand;                // 브랜드
-    private String color;                // 색상
+    private String revisedName;
+    private String revisedBrand;
+    private String revisedColor;
+    private String revisedAddress;
     private Category category;           // 카테고리
-    private String address;              // 주소
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     private LocalDate startDate;         // 검색 시작 날짜
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)

@@ -29,6 +29,11 @@ public class FoundItemResponse {
     private String brand;                 // 브랜드
     private FoundItemStatus status;    // 분실물 상태 (예: 'Lost', 'Found')
 
+    private String revisedName;
+    private String revisedBrand;
+    private String revisedColor;
+    private String revisedAddress;
+
     // 생성 및 수정 시간
     private LocalDateTime createdDate;    // 생성 시간
     private LocalDateTime modifiedDate;   // 수정 시간

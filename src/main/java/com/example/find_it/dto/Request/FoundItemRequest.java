@@ -20,6 +20,11 @@ public class FoundItemRequest {
     private String image;
     private FoundItemStatus status;
 
+    private String revisedName;
+    private String revisedBrand;
+    private String revisedColor;
+    private String revisedAddress;
+
     // Additional fields to match the UI
     private Category category;
     private String color;
