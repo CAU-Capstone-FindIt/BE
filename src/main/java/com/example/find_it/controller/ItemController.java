@@ -267,4 +267,35 @@ public class ItemController {
         return ResponseEntity.ok("Lost item status updated successfully.");
     }
 
+    @Operation(summary = "내가 등록한 분실물 조회", description = "마이페이지에서 내가 등록한 분실물을 조회합니다.")
+    @GetMapping("/lost/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<LostItemResponse>> getMyLostItems(@AuthenticationPrincipal UserDetails userDetails) {
+        // 사용자 인증 정보로 Member 객체 조회
+        Member member = memberService.getMemberByPrincipal(userDetails);
+
+        // 서비스 계층 호출
+        List<LostItemResponse> myLostItems = itemService.getMyLostItems(member).stream()
+                .map(itemService::toLostItemResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(myLostItems);
+    }
+
+    @Operation(summary = "내가 등록한 습득물 조회", description = "마이페이지에서 내가 등록한 습득물을 조회합니다.")
+    @GetMapping("/found/my")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<FoundItemResponse>> getMyFoundItems(@AuthenticationPrincipal UserDetails userDetails) {
+        // 사용자 인증 정보로 Member 객체 조회
+        Member member = memberService.getMemberByPrincipal(userDetails);
+
+        // 서비스 계층 호출
+        List<FoundItemResponse> myFoundItems = itemService.getMyFoundItems(member).stream()
+                .map(itemService::toFoundItemResponse)
+                .collect(Collectors.toList());
+
+        return ResponseEntity.ok(myFoundItems);
+    }
+
+
 }

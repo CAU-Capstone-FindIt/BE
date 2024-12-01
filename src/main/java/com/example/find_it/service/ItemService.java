@@ -523,6 +523,20 @@ public class ItemService {
         lostItemRepository.save(lostItem);
     }
 
+    @Transactional
+    public List<LostItem> getMyLostItems(Member member) {
+        return lostItemRepository.findAll().stream()
+                .filter(lostItem -> lostItem.getMember().equals(member)) // 로그인한 사용자와 일치하는 항목만 필터링
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public List<FoundItem> getMyFoundItems(Member member) {
+        return foundItemRepository.findAll().stream()
+                .filter(foundItem -> foundItem.getMember().equals(member)) // 로그인한 사용자와 일치하는 항목만 필터링
+                .collect(Collectors.toList());
+    }
+
 
 
 }
