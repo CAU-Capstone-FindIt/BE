@@ -1,6 +1,7 @@
 package com.example.find_it.service;
 
 import com.example.find_it.domain.*;
+import com.example.find_it.dto.PersonalMessage;
 import com.example.find_it.dto.Request.*;
 import com.example.find_it.dto.Response.FoundItemCommentResponse;
 import com.example.find_it.dto.Response.FoundItemResponse;
@@ -15,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -30,7 +32,8 @@ public class ItemService {
     private final FoundItemCommentRepository foundItemCommentRepository;
     private final LostItemCommentRepository lostItemCommentRepository;
     private final S3Service s3Service;
-    private final RewardService rewardService;
+    private final KafkaProducerService kafkaProducerService;
+    private static final String SHARED_TOPIC = "chat-messages";
 
     @Transactional
     public void registerLostItem(LostItemRequest lostItemDTO, Member member) throws IOException {
@@ -536,6 +539,28 @@ public class ItemService {
                 .filter(foundItem -> foundItem.getMember().equals(member)) // 로그인한 사용자와 일치하는 항목만 필터링
                 .collect(Collectors.toList());
     }
+
+    @Transactional
+    public void sendItemMessage(Long itemId, String itemType, Long senderId, Long receiverId, String content) {
+        // itemType 검증: "LOST" 또는 "FOUND" 외의 값은 IllegalArgumentException 발생
+        if (!"LOST".equalsIgnoreCase(itemType) && !"FOUND".equalsIgnoreCase(itemType)) {
+            throw new IllegalArgumentException("Invalid item type. Allowed values are 'LOST' or 'FOUND'.");
+        }
+
+        // 메시지 빌드
+        PersonalMessage message = PersonalMessage.builder()
+                .senderId(senderId)
+                .receiverId(receiverId)
+                .message(content)
+                .itemId(itemId)
+                .itemType(itemType.toUpperCase()) // 일관성을 위해 대문자로 변환
+                .timestamp(LocalDateTime.now())
+                .build();
+
+        // Kafka를 통해 메시지 전송
+        kafkaProducerService.sendMessage(SHARED_TOPIC, receiverId, message);
+    }
+
 
 
 

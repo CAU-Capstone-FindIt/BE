@@ -6,6 +6,7 @@ import com.example.find_it.dto.Response.FoundItemCommentResponse;
 import com.example.find_it.dto.Response.FoundItemResponse;
 import com.example.find_it.dto.Response.LostItemCommentResponse;
 import com.example.find_it.dto.Response.LostItemResponse;
+import com.example.find_it.exception.CustomException;
 import com.example.find_it.service.ItemService;
 import com.example.find_it.service.MemberService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -296,6 +297,74 @@ public class ItemController {
 
         return ResponseEntity.ok(myFoundItems);
     }
+
+    @Operation(summary = "게시글 쪽지 전송", description = "특정 분실물 게시글과 관련하여 쪽지를 보냅니다.")
+    @PostMapping("/{lostItemId}/message/send")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> sendLostItemMessage(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long lostItemId,
+            @RequestParam Long receiverId,
+            @RequestBody String content) {
+        // 1. 현재 로그인한 사용자의 정보를 Member 객체로 변환
+        Member sender = memberService.getMemberByPrincipal(userDetails);
+
+        // 2. 메시지 내용 검증
+        if (content == null || content.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Message content cannot be empty.");
+        }
+
+        // 3. 서비스 호출
+        try {
+            // itemType을 "LOST"로 설정하여 sendItemMessage 호출
+            itemService.sendItemMessage(lostItemId, "LOST", sender.getId(), receiverId, content);
+            return ResponseEntity.ok("Message sent successfully.");
+        } catch (CustomException e) {
+            // 4. 서비스에서 발생한 예외 처리
+            return ResponseEntity.status(e.getErrorCode().getHttpStatus()).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            // 5. 잘못된 itemType 등 예상 가능한 예외 처리
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            // 6. 예상치 못한 에러 처리
+            return ResponseEntity.status(500).body("An unexpected error occurred.");
+        }
+    }
+
+    @Operation(summary = "게시글 쪽지 전송", description = "특정 습득물 게시글과 관련하여 쪽지를 보냅니다.")
+    @PostMapping("/{foundItemId}/message/send")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> sendFoundItemMessage(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @PathVariable Long foundItemId,
+            @RequestParam Long receiverId,
+            @RequestBody String content) {
+        // 1. 현재 로그인한 사용자의 정보를 Member 객체로 변환
+        Member sender = memberService.getMemberByPrincipal(userDetails);
+
+        // 2. 메시지 내용 검증
+        if (content == null || content.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body("Message content cannot be empty.");
+        }
+
+        // 3. 서비스 호출
+        try {
+            // itemType을 "FOUND"로 설정하여 sendItemMessage 호출
+            itemService.sendItemMessage(foundItemId, "FOUND", sender.getId(), receiverId, content);
+            return ResponseEntity.ok("Message sent successfully.");
+        } catch (CustomException e) {
+            // 4. 서비스에서 발생한 예외 처리
+            return ResponseEntity.status(e.getErrorCode().getHttpStatus()).body(e.getMessage());
+        } catch (IllegalArgumentException e) {
+            // 5. 잘못된 itemType 등 예상 가능한 예외 처리
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            // 6. 예상치 못한 에러 처리
+            return ResponseEntity.status(500).body("An unexpected error occurred.");
+        }
+    }
+
+
 
 
 }

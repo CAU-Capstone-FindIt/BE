@@ -1,5 +1,6 @@
 package com.example.find_it.domain;
 
+import com.example.find_it.dto.PersonalMessage;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -54,4 +55,7 @@ public class LostItem extends BaseTimeEntity {
     private List<LostItemComment> comments = new ArrayList<>();
 
     private String image;
+
+    @OneToMany(mappedBy = "lostItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PersonalMessage> messages = new ArrayList<>();
 }
