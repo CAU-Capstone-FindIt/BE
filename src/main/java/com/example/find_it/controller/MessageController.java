@@ -56,13 +56,13 @@ public class MessageController {
 
     @Operation(
             summary = "상대방별 최신 메시지 조회",
-            description = "수신자(receiverId)에게 온 모든 메시지 중, 각 상대방별 최신 메시지 하나씩을 반환합니다."
+            description = "사용자(userId)가 주고받은 모든 메시지 중, 각 상대방별 최신 메시지 하나씩을 반환합니다."
     )
     @GetMapping("/latest-messages")
     public ResponseEntity<List<PersonalMessage>> getLatestMessages(
-            @Parameter(description = "메시지를 받는 사용자 ID (수신자)", required = true) @RequestParam Long receiverId
+            @Parameter(description = "메시지를 주고받은 사용자 ID", required = true) @RequestParam Long userId
     ) {
-        List<PersonalMessage> messages = kafkaConsumerService.getLatestMessages(SHARED_TOPIC, receiverId);
+        List<PersonalMessage> messages = kafkaConsumerService.getLatestMessagesForReceiverAndSender(SHARED_TOPIC, userId);
         return ResponseEntity.ok(messages);
     }
 
