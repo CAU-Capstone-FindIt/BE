@@ -1,7 +1,8 @@
 package com.example.find_it.service;
 
 import com.example.find_it.domain.*;
-import com.example.find_it.dto.PersonalMessage;
+import com.example.find_it.domain.PersonalMessage;
+import com.example.find_it.dto.PersonalMessageDto;
 import com.example.find_it.dto.Request.*;
 import com.example.find_it.dto.Response.FoundItemCommentResponse;
 import com.example.find_it.dto.Response.FoundItemResponse;
@@ -33,6 +34,7 @@ public class ItemService {
     private final LostItemCommentRepository lostItemCommentRepository;
     private final S3Service s3Service;
     private final KafkaProducerService kafkaProducerService;
+    private final PersonalMessageRepository personalMessageRepository;
     private static final String SHARED_TOPIC = "chat-messages";
 
     @Transactional
@@ -542,26 +544,30 @@ public class ItemService {
 
     @Transactional
     public void sendItemMessage(Long itemId, String itemType, Long senderId, Long receiverId, String content) {
-        // itemType 검증: "LOST" 또는 "FOUND" 외의 값은 IllegalArgumentException 발생
         if (!"LOST".equalsIgnoreCase(itemType) && !"FOUND".equalsIgnoreCase(itemType)) {
             throw new IllegalArgumentException("Invalid item type. Allowed values are 'LOST' or 'FOUND'.");
         }
 
-        // 메시지 빌드
-        PersonalMessage message = PersonalMessage.builder()
+        // 메시지 엔티티 저장
+        PersonalMessage personalMessage = PersonalMessage.builder()
                 .senderId(senderId)
                 .receiverId(receiverId)
                 .message(content)
                 .itemId(itemId)
-                .itemType(itemType.toUpperCase()) // 일관성을 위해 대문자로 변환
+                .itemType(itemType.toUpperCase())
                 .timestamp(LocalDateTime.now())
                 .build();
+        personalMessageRepository.save(personalMessage);
 
-        // Kafka를 통해 메시지 전송
-        kafkaProducerService.sendMessage(SHARED_TOPIC, receiverId, message);
+        // Kafka 메시지 전송
+        PersonalMessageDto messageDto = PersonalMessageDto.builder()
+                .senderId(senderId)
+                .receiverId(receiverId)
+                .message(content)
+                .itemId(itemId)
+                .itemType(itemType.toUpperCase())
+                .timestamp(LocalDateTime.now())
+                .build();
+        kafkaProducerService.sendMessage(SHARED_TOPIC, receiverId, messageDto);
     }
-
-
-
-
 }

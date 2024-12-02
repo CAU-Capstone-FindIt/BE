@@ -1,6 +1,6 @@
 package com.example.find_it.domain;
 
-import com.example.find_it.dto.PersonalMessage;
+import com.example.find_it.domain.PersonalMessage;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;

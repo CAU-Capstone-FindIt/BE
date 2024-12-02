@@ -1,6 +1,6 @@
 package com.example.find_it.config;
 
-import com.example.find_it.dto.PersonalMessage;
+import com.example.find_it.domain.PersonalMessage;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.springframework.beans.factory.annotation.Value;

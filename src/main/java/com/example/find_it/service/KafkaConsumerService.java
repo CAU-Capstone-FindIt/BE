@@ -1,6 +1,10 @@
 package com.example.find_it.service;
 
-import com.example.find_it.dto.PersonalMessage;
+import com.example.find_it.domain.LostItem;
+import com.example.find_it.domain.FoundItem;
+import com.example.find_it.dto.PersonalMessageDto;
+import com.example.find_it.repository.FoundItemRepository;
+import com.example.find_it.repository.LostItemRepository;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -13,56 +17,82 @@ import java.util.stream.Collectors;
 @Service
 public class KafkaConsumerService {
 
-    private final List<PersonalMessage> messageStore = new ArrayList<>();
+    private final LostItemRepository lostItemRepository;
+    private final FoundItemRepository foundItemRepository;
 
-    @KafkaListener(topics = "chat-messages", groupId = "chat-group")
-    public void consume(PersonalMessage message) {
-        // 메시지 수신 후 메모리 또는 데이터베이스에 저장
-        messageStore.add(message);
+    private final List<PersonalMessageDto> messageStore = new ArrayList<>();
+
+    public KafkaConsumerService(LostItemRepository lostItemRepository, FoundItemRepository foundItemRepository) {
+        this.lostItemRepository = lostItemRepository;
+        this.foundItemRepository = foundItemRepository;
     }
 
-    public List<PersonalMessage> getMessages(String topic, Long receiverId, Long senderId) {
+    @KafkaListener(topics = "chat-messages", groupId = "chat-group")
+    public void consume(PersonalMessageDto messageDto) {
+        // Store the message in memory
+        messageDto.setItemName(getItemName(messageDto.getItemId(), messageDto.getItemType()));
+        messageDto.setItemImageUrl(getItemImageUrl(messageDto.getItemId(), messageDto.getItemType()));
+        messageStore.add(messageDto);
+    }
+
+    // Retrieve all messages for a receiver with an optional sender filter
+    public List<PersonalMessageDto> getMessages(Long receiverId, Long senderId) {
         return messageStore.stream()
                 .filter(message -> message.getReceiverId().equals(receiverId) &&
                         (senderId == null || message.getSenderId().equals(senderId)))
                 .collect(Collectors.toList());
     }
 
-    public List<PersonalMessage> getLatestMessages(String topic, Long receiverId) {
-        return messageStore.stream()
-                .filter(message -> message.getReceiverId().equals(receiverId))
-                .collect(Collectors.groupingBy(PersonalMessage::getSenderId))
-                .values().stream()
-                .map(messages -> messages.get(messages.size() - 1))
-                .collect(Collectors.toList());
-    }
-
-    public List<PersonalMessage> getLatestMessagesForReceiverAndSender(String topic, Long userId) {
-        // 사용자와 주고받은 모든 메시지 필터링
+    // Retrieve the latest messages grouped by sender/receiver
+    public List<PersonalMessageDto> getLatestMessagesForReceiverAndSender(Long userId) {
         return messageStore.stream()
                 .filter(message -> message.getSenderId().equals(userId) || message.getReceiverId().equals(userId))
-                .collect(Collectors.groupingBy(message -> {
-                    // 상대방 기준으로 그룹화
-                    if (message.getSenderId().equals(userId)) {
-                        return message.getReceiverId();
-                    } else {
-                        return message.getSenderId();
-                    }
-                }))
+                .collect(Collectors.groupingBy(message ->
+                        message.getSenderId().equals(userId) ? message.getReceiverId() : message.getSenderId()
+                ))
                 .values().stream()
-                .map(messages -> messages.stream().max(Comparator.comparing(PersonalMessage::getTimestamp)).orElse(null))
+                .map(messages -> messages.stream()
+                        .max(Comparator.comparing(PersonalMessageDto::getTimestamp))
+                        .orElse(null))
                 .filter(Objects::nonNull)
                 .collect(Collectors.toList());
     }
 
-    public List<PersonalMessage> getConversationForBoth(String topic, Long userA, Long userB) {
+    // Retrieve a full conversation between two users
+    public List<PersonalMessageDto> getConversationForBoth(Long userA, Long userB) {
         return messageStore.stream()
                 .filter(message ->
                         (message.getSenderId().equals(userA) && message.getReceiverId().equals(userB)) ||
                                 (message.getSenderId().equals(userB) && message.getReceiverId().equals(userA)))
-                .sorted(Comparator.comparing(PersonalMessage::getTimestamp).reversed()) // 최신 순 정렬
+                .sorted(Comparator.comparing(PersonalMessageDto::getTimestamp))
                 .collect(Collectors.toList());
     }
 
+    // Helper to get the item's name based on its ID and type
+    private String getItemName(Long itemId, String itemType) {
+        if ("LOST".equalsIgnoreCase(itemType)) {
+            return lostItemRepository.findById(itemId)
+                    .map(LostItem::getName)
+                    .orElse("Unknown Lost Item");
+        } else if ("FOUND".equalsIgnoreCase(itemType)) {
+            return foundItemRepository.findById(itemId)
+                    .map(FoundItem::getName)
+                    .orElse("Unknown Found Item");
+        }
+        return "Unknown Item";
+    }
 
+    // Helper to get the item's image URL based on its ID and type
+    private String getItemImageUrl(Long itemId, String itemType) {
+        if ("LOST".equalsIgnoreCase(itemType)) {
+            return lostItemRepository.findById(itemId)
+                    .map(LostItem::getImage)
+                    .orElse(null);
+        } else if ("FOUND".equalsIgnoreCase(itemType)) {
+            return foundItemRepository.findById(itemId)
+                    .map(FoundItem::getImage)
+                    .orElse(null);
+        }
+        return null;
+    }
 }
