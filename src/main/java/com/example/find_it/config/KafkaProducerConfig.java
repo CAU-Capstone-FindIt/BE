@@ -1,6 +1,7 @@
 package com.example.find_it.config;
 
 import com.example.find_it.domain.PersonalMessage;
+import com.example.find_it.dto.PersonalMessageDto;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.LongSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -21,7 +22,7 @@ public class KafkaProducerConfig {
     private String bootstrapServers;
 
     @Bean
-    public ProducerFactory<Long, PersonalMessage> producerFactory() {
+    public ProducerFactory<Long, PersonalMessageDto> producerFactory() {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, LongSerializer.class);
@@ -30,7 +31,7 @@ public class KafkaProducerConfig {
     }
 
     @Bean
-    public KafkaTemplate<Long, PersonalMessage> kafkaTemplate() {
+    public KafkaTemplate<Long, PersonalMessageDto> kafkaTemplate() {
         return new KafkaTemplate<>(producerFactory());
     }
 }
