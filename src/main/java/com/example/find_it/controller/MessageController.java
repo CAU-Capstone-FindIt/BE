@@ -47,24 +47,28 @@ public class MessageController {
     @GetMapping("/receive")
     public ResponseEntity<List<PersonalMessageDto>> receiveMessages(
             @RequestParam Long receiverId,
-            @RequestParam(required = false) Long senderId) {
-        List<PersonalMessageDto> messages = kafkaConsumerService.getMessages(receiverId, senderId);
+            @RequestParam(required = false) Long senderId,
+            @RequestParam(required = false) Long itemId,
+            @RequestParam(required = false) String itemType) {
+        List<PersonalMessageDto> messages = kafkaConsumerService.getMessages(receiverId, senderId, itemId, itemType);
         return ResponseEntity.ok(messages);
     }
 
-    @Operation(summary = "최신 메시지 조회", description = "사용자가 주고받은 모든 메시지 중 각 상대방별 최신 메시지를 반환합니다.")
+    @Operation(summary = "최신 메시지 조회", description = "사용자가 주고받은 모든 메시지 중 각 물건별 최신 메시지를 반환합니다.")
     @GetMapping("/latest-messages")
     public ResponseEntity<List<PersonalMessageDto>> getLatestMessages(@RequestParam Long userId) {
         List<PersonalMessageDto> messages = kafkaConsumerService.getLatestMessagesForReceiverAndSender(userId);
         return ResponseEntity.ok(messages);
     }
 
-    @Operation(summary = "두 사용자 간 대화 조회", description = "두 사용자 간의 대화를 시간순으로 반환합니다.")
+    @Operation(summary = "대화 조회", description = "두 사용자 간의 대화를 물건 단위로 조회합니다.")
     @GetMapping("/conversation/between")
     public ResponseEntity<List<PersonalMessageDto>> getConversationBetween(
             @RequestParam Long userA,
-            @RequestParam Long userB) {
-        List<PersonalMessageDto> messages = kafkaConsumerService.getConversationForBoth(userA, userB);
+            @RequestParam Long userB,
+            @RequestParam(required = false) Long itemId,
+            @RequestParam(required = false) String itemType) {
+        List<PersonalMessageDto> messages = kafkaConsumerService.getConversationForBoth(userA, userB, itemId, itemType);
         return ResponseEntity.ok(messages);
     }
 }

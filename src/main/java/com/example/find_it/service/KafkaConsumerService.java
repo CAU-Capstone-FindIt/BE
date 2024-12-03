@@ -5,6 +5,7 @@ import com.example.find_it.domain.FoundItem;
 import com.example.find_it.dto.PersonalMessageDto;
 import com.example.find_it.repository.FoundItemRepository;
 import com.example.find_it.repository.LostItemRepository;
+import lombok.AllArgsConstructor;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 
@@ -15,17 +16,13 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
+@AllArgsConstructor
 public class KafkaConsumerService {
 
     private final LostItemRepository lostItemRepository;
     private final FoundItemRepository foundItemRepository;
 
     private final List<PersonalMessageDto> messageStore = new ArrayList<>();
-
-    public KafkaConsumerService(LostItemRepository lostItemRepository, FoundItemRepository foundItemRepository) {
-        this.lostItemRepository = lostItemRepository;
-        this.foundItemRepository = foundItemRepository;
-    }
 
     @KafkaListener(topics = "chat-messages", groupId = "chat-group")
     public void consume(PersonalMessageDto messageDto) {
@@ -35,20 +32,24 @@ public class KafkaConsumerService {
         messageStore.add(messageDto);
     }
 
-    // Retrieve all messages for a receiver with an optional sender filter
-    public List<PersonalMessageDto> getMessages(Long receiverId, Long senderId) {
+    // 특정 수신자(receiverId)와 발신자(senderId)의 메시지 조회 (물건 기준 포함)
+    public List<PersonalMessageDto> getMessages(Long receiverId, Long senderId, Long itemId, String itemType) {
         return messageStore.stream()
-                .filter(message -> message.getReceiverId().equals(receiverId) &&
-                        (senderId == null || message.getSenderId().equals(senderId)))
+                .filter(message -> message.getReceiverId().equals(receiverId)
+                        && (senderId == null || message.getSenderId().equals(senderId))
+                        && (itemId == null || message.getItemId().equals(itemId))
+                        && (itemType == null || message.getItemType().equalsIgnoreCase(itemType)))
                 .collect(Collectors.toList());
     }
 
-    // Retrieve the latest messages grouped by sender/receiver
+    // 특정 사용자(userId)와 상대방 간의 최신 메시지 조회 (물건 기준 추가)
     public List<PersonalMessageDto> getLatestMessagesForReceiverAndSender(Long userId) {
         return messageStore.stream()
                 .filter(message -> message.getSenderId().equals(userId) || message.getReceiverId().equals(userId))
                 .collect(Collectors.groupingBy(message ->
-                        message.getSenderId().equals(userId) ? message.getReceiverId() : message.getSenderId()
+                        message.getSenderId().equals(userId)
+                                ? message.getReceiverId() + "-" + message.getItemId() + "-" + message.getItemType()
+                                : message.getSenderId() + "-" + message.getItemId() + "-" + message.getItemType()
                 ))
                 .values().stream()
                 .map(messages -> messages.stream()
@@ -58,12 +59,15 @@ public class KafkaConsumerService {
                 .collect(Collectors.toList());
     }
 
-    // Retrieve a full conversation between two users
-    public List<PersonalMessageDto> getConversationForBoth(Long userA, Long userB) {
+    // 두 사용자 간의 대화 조회 (물건 기준 추가)
+    public List<PersonalMessageDto> getConversationForBoth(Long userA, Long userB, Long itemId, String itemType) {
         return messageStore.stream()
                 .filter(message ->
-                        (message.getSenderId().equals(userA) && message.getReceiverId().equals(userB)) ||
+                        ((message.getSenderId().equals(userA) && message.getReceiverId().equals(userB)) ||
                                 (message.getSenderId().equals(userB) && message.getReceiverId().equals(userA)))
+                                && (itemId == null || message.getItemId().equals(itemId))
+                                && (itemType == null || message.getItemType().equalsIgnoreCase(itemType))
+                )
                 .sorted(Comparator.comparing(PersonalMessageDto::getTimestamp))
                 .collect(Collectors.toList());
     }
