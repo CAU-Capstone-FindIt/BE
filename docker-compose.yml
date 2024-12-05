@@ -9,9 +9,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.3" # Limit to 30% of one core
-          memory: 512m # Limit memory to 512MB
-
+          cpus: "0.3"
+          memory: 512m
   kafka:
     image: confluentinc/cp-kafka:latest
     depends_on:
@@ -31,15 +30,15 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.6" # Limit to 60% of one core
-          memory: 1g # Limit memory to 1GB
-
+          cpus: "0.6"
+          memory: 1g
   app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+      - "8443:8443" # Add HTTPS port mapping
     environment:
       SPRING_PROFILES_ACTIVE: SECRET-KEY
       SPRING_DATASOURCE_URL: jdbc:mysql://capstone.cbweg6cmcjxe.ap-northeast-2.rds.amazonaws.com:3306/capstone
@@ -57,5 +56,5 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "0.5" # Limit to 50% of one core
-          memory: 2g # Limit memory to 1.5GB
+          cpus: "0.5"
+          memory: 2g

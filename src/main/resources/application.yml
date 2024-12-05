@@ -1,6 +1,13 @@
+server:
+  port: 8443
+  ssl:
+    key-store: /app/config/keystore.p12
+    key-store-password: 1234 # 생성 시 입력한 비밀번호
+    key-store-type: PKCS12
+
 spring:
   profiles:
-    active: ${SPRING_PROFILES_ACTIVE} # 프로파일 설정
+    active: ${SPRING_PROFILES_ACTIVE}
   datasource:
     url: ${SPRING_DATASOURCE_URL}?serverTimezone=Asia/Seoul
     username: ${database-username}
@@ -19,61 +26,59 @@ spring:
       name: /logs/spring-boot.log
     level:
       org.hibernate.SQL: info
-      org.apache.kafka: warn  # Kafka 관련 로그를 WARN으로 설정
+      org.apache.kafka: warn
       org.springframework.kafka: warn
   jackson:
     time-zone: Asia/Seoul
 
-# 파일 업로드 설정
+# File upload configuration
 spring.servlet.multipart:
   enabled: true
   max-file-size: 10MB
   max-request-size: 10MB
 
-# Firebase 설정
+# Firebase configuration
 fcm:
   certification: /app/config/firebaseworry.json
 
-# OpenAI 설정
+# OpenAI configuration
 openai:
   model: gpt-4o
   api:
     url: "https://api.openai.com/v1/chat/completions"
     key: ${OPENAI_API_KEY}
 
-# Kafka 설정
+# Kafka configuration
 kafka:
   bootstrap-servers: kafka:29092
   consumer:
     group-id: ${KAFKA_CONSUMER_GROUP_ID}
     auto-offset-reset: earliest
     enable-auto-commit: true
-    max-poll-records: 10 # 한 번에 처리할 메시지 수 제한 (최적화)
+    max-poll-records: 10
     properties:
-      fetch.min.bytes: 1 # 최소 데이터 크기 (바이트 단위)
-      fetch.max.wait.ms: 500 # 최대 대기 시간 (밀리초 단위)
+      fetch.min.bytes: 1
+      fetch.max.wait.ms: 500
     key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
     value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
   producer:
     key-serializer: org.apache.kafka.common.serialization.StringSerializer
     value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
     properties:
-      retries: 3 # 실패 시 재시도 횟수
-      batch.size: 16384 # 배치 크기 (16KB)
-      linger.ms: 1 # 배치 전송 지연 시간
-      compression.type: snappy # 메시지 압축 방식
+      retries: 3
+      batch.size: 16384
+      linger.ms: 1
+      compression.type: snappy
 
 # Kafka Listener
 spring.kafka.listener:
-  ack-mode: batch # 배치 단위로 메시지 확인
+  ack-mode: batch
 
 aws:
   credentials:
-    access-key: ${AWS_ACCESS_KEY} # 환경 변수로 설정
-    secret-key: ${AWS_SECRET_KEY} # 환경 변수로 설정
-  region: ap-northeast-2 # 한국 리전 설정
+    access-key: ${AWS_ACCESS_KEY}
+    secret-key: ${AWS_SECRET_KEY}
+  region: ap-northeast-2
   s3:
-    bucket: capstonem # S3 버킷 이름
-    folder: uploads # 업로드 폴더 경로
-
-
+    bucket: capstonem
+    folder: uploads
