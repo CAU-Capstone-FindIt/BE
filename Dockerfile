@@ -15,7 +15,7 @@ COPY firebaseworry.json /app/config/firebaseworry.json
 
 # Expose the port used by the application in the container
 EXPOSE 8080
-EXPOSE 8443 # Add HTTPS port
+EXPOSE 8443
 
 # Set command to run JAR file
 ENTRYPOINT ["java", "-jar", "app.jar"]
