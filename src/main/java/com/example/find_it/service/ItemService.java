@@ -267,26 +267,37 @@ public class ItemService {
                     int matchCount = 0;
 
                     // Search conditions using refined values only
-                    if (searchCriteria.getRevisedName() != null && searchCriteria.getRevisedName().equalsIgnoreCase(item.getRevisedName())) {
+                    if (searchCriteria.getRevisedName() != null &&
+                            item.getRevisedName() != null &&
+                            item.getRevisedName().toLowerCase().contains(searchCriteria.getRevisedName().toLowerCase())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getRevisedBrand() != null && searchCriteria.getRevisedBrand().equalsIgnoreCase(item.getRevisedBrand())) {
+                    if (searchCriteria.getRevisedBrand() != null &&
+                            item.getRevisedBrand() != null &&
+                            item.getRevisedBrand().toLowerCase().contains(searchCriteria.getRevisedBrand().toLowerCase())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getRevisedColor() != null && searchCriteria.getRevisedColor().equalsIgnoreCase(item.getRevisedColor())) {
+                    if (searchCriteria.getRevisedColor() != null &&
+                            item.getRevisedColor() != null &&
+                            item.getRevisedColor().toLowerCase().contains(searchCriteria.getRevisedColor().toLowerCase())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getRevisedAddress() != null && searchCriteria.getRevisedAddress().equalsIgnoreCase(item.getRevisedAddress())) {
+                    if (searchCriteria.getRevisedAddress() != null &&
+                            item.getRevisedAddress() != null &&
+                            item.getRevisedAddress().toLowerCase().contains(searchCriteria.getRevisedAddress().toLowerCase())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getCategory() != null && searchCriteria.getCategory() == item.getCategory()) {
+                    if (searchCriteria.getCategory() != null &&
+                            searchCriteria.getCategory() == item.getCategory()) {
                         matchCount++;
                     }
                     // Check if lostDate is between startDate and endDate
                     if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
                         if (item.getReportDate() != null &&
-                                (item.getReportDate().isEqual(searchCriteria.getStartDate()) || item.getReportDate().isAfter(searchCriteria.getStartDate())) &&
-                                (item.getReportDate().isEqual(searchCriteria.getEndDate()) || item.getReportDate().isBefore(searchCriteria.getEndDate()))) {
+                                (item.getReportDate().isEqual(searchCriteria.getStartDate()) ||
+                                        item.getReportDate().isAfter(searchCriteria.getStartDate())) &&
+                                (item.getReportDate().isEqual(searchCriteria.getEndDate()) ||
+                                        item.getReportDate().isBefore(searchCriteria.getEndDate()))) {
                             matchCount++;
                         }
                     }
@@ -303,26 +314,37 @@ public class ItemService {
                     int matchCount = 0;
 
                     // Search conditions using refined values only
-                    if (searchCriteria.getRevisedName() != null && searchCriteria.getRevisedName().equalsIgnoreCase(item.getRevisedName())) {
+                    if (searchCriteria.getRevisedName() != null &&
+                            item.getRevisedName() != null &&
+                            item.getRevisedName().toLowerCase().contains(searchCriteria.getRevisedName().toLowerCase())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getRevisedBrand() != null && searchCriteria.getRevisedBrand().equalsIgnoreCase(item.getRevisedBrand())) {
+                    if (searchCriteria.getRevisedBrand() != null &&
+                            item.getRevisedBrand() != null &&
+                            item.getRevisedBrand().toLowerCase().contains(searchCriteria.getRevisedBrand().toLowerCase())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getRevisedColor() != null && searchCriteria.getRevisedColor().equalsIgnoreCase(item.getRevisedColor())) {
+                    if (searchCriteria.getRevisedColor() != null &&
+                            item.getRevisedColor() != null &&
+                            item.getRevisedColor().toLowerCase().contains(searchCriteria.getRevisedColor().toLowerCase())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getRevisedAddress() != null && searchCriteria.getRevisedAddress().equalsIgnoreCase(item.getRevisedAddress())) {
+                    if (searchCriteria.getRevisedAddress() != null &&
+                            item.getRevisedAddress() != null &&
+                            item.getRevisedAddress().toLowerCase().contains(searchCriteria.getRevisedAddress().toLowerCase())) {
                         matchCount++;
                     }
-                    if (searchCriteria.getCategory() != null && searchCriteria.getCategory() == item.getCategory()) {
+                    if (searchCriteria.getCategory() != null &&
+                            searchCriteria.getCategory() == item.getCategory()) {
                         matchCount++;
                     }
                     // Check if foundDate is between startDate and endDate
                     if (searchCriteria.getStartDate() != null && searchCriteria.getEndDate() != null) {
                         if (item.getReportDate() != null &&
-                                (item.getReportDate().isEqual(searchCriteria.getStartDate()) || item.getReportDate().isAfter(searchCriteria.getStartDate())) &&
-                                (item.getReportDate().isEqual(searchCriteria.getEndDate()) || item.getReportDate().isBefore(searchCriteria.getEndDate()))) {
+                                (item.getReportDate().isEqual(searchCriteria.getStartDate()) ||
+                                        item.getReportDate().isAfter(searchCriteria.getStartDate())) &&
+                                (item.getReportDate().isEqual(searchCriteria.getEndDate()) ||
+                                        item.getReportDate().isBefore(searchCriteria.getEndDate()))) {
                             matchCount++;
                         }
                     }
@@ -331,6 +353,7 @@ public class ItemService {
                 })
                 .collect(Collectors.toList());
     }
+
 
 
     public LostItemResponse getLostItemDetails(Long lostItemId) {
