@@ -11,6 +11,7 @@ import java.util.List;
 public class LostItemCommentResponse {
     private Long id;                // 댓글 ID
     private Long userId;            // 작성자 ID
+    private String nickname;
     private Long lostItemId;        // 해당 LostItem ID
     private String content;         // 댓글 내용
     private LocalDateTime createdDate;

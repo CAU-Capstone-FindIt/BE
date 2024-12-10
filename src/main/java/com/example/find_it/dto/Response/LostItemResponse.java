@@ -19,10 +19,17 @@ public class LostItemResponse {
     private String color;             // 분실물 색상 (예: "초록색")
     private String brand;             // 분실물 브랜드 (예: "Apple")
     private String description;       // 분실물에 대한 설명
-    private LocalDateTime lostDate;       // 분실 날짜
+    private LocalDate reportDate;       // 분실 날짜
+    private String image;
+    private Double latitude;              // 위치 위도
+    private Double longitude;
     private String address;           // 위치 주소
     private Long rewardId;            // 보상 관련 정보 (보상 ID)
     private LostItemStatus status;    // 분실물 상태 (예: 'Lost', 'Found')
+    private String revisedName;
+    private String revisedBrand;
+    private String revisedColor;
+    private String revisedAddress;
     private LocalDateTime createdDate;    // 생성일
     private LocalDateTime modifiedDate;   // 수정일
     private List<LostItemCommentResponse> comments; // 댓글 목록 추가

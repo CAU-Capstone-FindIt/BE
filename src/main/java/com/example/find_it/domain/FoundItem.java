@@ -1,5 +1,6 @@
 package com.example.find_it.domain;
 
+import com.example.find_it.domain.PersonalMessage;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -22,20 +23,35 @@ public class FoundItem extends BaseTimeEntity {
     @JoinColumn(name = "member_id")
     private Member member;
 
+    private String name;
+
     private String description;
-    private LocalDate foundDate;
+    private LocalDate reportDate;
 
-    @ManyToOne
-    @JoinColumn(name = "location_id")
-    private Location location;
+    @Enumerated(EnumType.STRING)
+    private FoundItemStatus status;
 
-    private String photo;
+    // Location 필드 통합
+    private Double latitude;  // 위도
+    private Double longitude; // 경도
+    private String address;   // 주소
+
+    private String image;
 
     @Enumerated(EnumType.STRING)
     private Category category;  // Category Enum으로 수정
+
     private String color;
     private String brand;
 
+    private String revisedName;
+    private String revisedBrand;
+    private String revisedColor;
+    private String revisedAddress;
+
     @OneToMany(mappedBy = "foundItem", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<FoundItemComment> comments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "foundItem", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<PersonalMessage> messages = new ArrayList<>();
 }

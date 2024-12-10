@@ -62,6 +62,7 @@ public class MemberService {
         // kakaoId가 같은 Member가 없음 : 새로 가입
         Member newMember = Member.builder()
                 .name(profile.get("nickname").toString())
+                .nickname(profile.get("nickname").toString()) // nickname을 name과 동일하게 설정
                 .kakaoId(kakaoId)
                 .profileImage(profile.get("profile_image_url").toString())
                 .build();
@@ -88,11 +89,8 @@ public class MemberService {
     }
 
     public Member updateMyMember(Member member, MemberUpdateRequest request) throws CustomException {
-        if (request.getName() != null) {
-            member.setName(request.getName());
-        }
-        if (request.getProfileImage() != null) {
-            member.setProfileImage(request.getProfileImage());
+        if (request.getNickname() != null) {
+            member.setNickname(request.getNickname()); // nickname 업데이트
         }
         memberRepository.save(member);
         return member;
@@ -107,4 +105,20 @@ public class MemberService {
         return memberRepository.findById(memberId)
                 .orElseThrow(() -> new CustomException(ErrorCode.USER_NOT_FOUND));
     }
+
+    @Transactional
+    public Member addPoints(UserDetails userDetails, int pointsToAdd) {
+        if (pointsToAdd <= 0) {
+            // INVALID_POINT_AMOUNT로 에러를 던짐
+            throw new CustomException(ErrorCode.INVALID_POINT_AMOUNT);
+        }
+
+        // 현재 사용자의 정보를 가져오기
+        Member member = getMemberByPrincipal(userDetails);
+        member.adjustPoints(pointsToAdd); // 포인트 추가
+        memberRepository.save(member); // 업데이트된 회원 정보 저장
+
+        return member;
+    }
+
 }

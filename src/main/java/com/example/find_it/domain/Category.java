@@ -1,5 +1,12 @@
 package com.example.find_it.domain;
 
 public enum Category {
-    ELECTRONICS, JEWELRY, WALLET, BAG, CLOTHING, INSTRUMENT, CASH, OTHER
+    전자기기, // Electronics
+    귀금속,  // Jewelry
+    지갑,    // Wallet
+    가방,    // Bag
+    의류,    // Clothing
+    악기,    // Instrument
+    현금,    // Cash
+    기타     // Other
 }

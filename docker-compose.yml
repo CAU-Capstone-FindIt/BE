@@ -1,5 +1,4 @@
 version: '3.8'
-
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -7,7 +6,11 @@ services:
       ZOOKEEPER_CLIENT_PORT: 2181
     ports:
       - "2181:2181"
-
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 512m
   kafka:
     image: confluentinc/cp-kafka:latest
     depends_on:
@@ -20,29 +23,38 @@ services:
       KAFKA_INTER_BROKER_LISTENER_NAME: INTERNAL
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       KAFKA_LOG_RETENTION_HOURS: 12
-      KAFKA_LOG_SEGMENT_BYTES: 67108864 # Smaller segment size (64MB)
+      KAFKA_LOG_SEGMENT_BYTES: 67108864
       KAFKA_COMPRESSION_TYPE: gzip
     ports:
       - "9092:9092"
-
+    deploy:
+      resources:
+        limits:
+          cpus: "0.6"
+          memory: 1g
   app:
     build:
       context: .
       dockerfile: Dockerfile
     ports:
       - "8080:8080"
+      - "8443:8443" # Add HTTPS port mapping
     environment:
       SPRING_PROFILES_ACTIVE: SECRET-KEY
       SPRING_DATASOURCE_URL: jdbc:mysql://capstone.cbweg6cmcjxe.ap-northeast-2.rds.amazonaws.com:3306/capstone
-      # SPRING_DATASOURCE_URL: jdbc:mysql://host.docker.internal:13306/capstone
-      SPRING_JPA_HIBERNATE_DDL_AUTO: create
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
       FCM_CERTIFICATION: /app/config/firebaseworry.json
       KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       KAFKA_CONSUMER_GROUP_ID: my-custom-group
     volumes:
       - ./firebaseworry.json:/app/config/firebaseworry.json
-      - /home/ubuntu/logs:/logs # 컨테이너 내부 로그 경로를 호스트 로그 경로로 매핑
+      - /home/ubuntu/logs:/logs
     depends_on:
       - kafka
     command: >
-      sh -c "java -jar app.jar > /logs/spring-boot.log 2>&1"
+      sh -c "java -jar app.jar"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 2g
